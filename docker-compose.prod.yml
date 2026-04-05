@@ -1,0 +1,151 @@
+# ==============================================================================
+#  ECOMMERCE PLATFORM — PRODUCTION OVERRIDES
+#  docker-compose.prod.yml
+#
+#  DÙNG NHƯ THẾ NÀO:
+#    docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+#  TRIẾT LÝ PRODUCTION:
+#  1. SECURITY: không expose ports nội bộ, dùng secrets thay env vars
+#  2. RESOURCES: giới hạn CPU/RAM để tránh một service "eat" tài nguyên cả server
+#  3. RELIABILITY: restart policies, health checks nghiêm ngặt hơn
+#  4. OBSERVABILITY: logging đầy đủ, metrics chi tiết
+#
+#  QUAN TRỌNG: File này chỉ là TEMPLATE — production thực tế nên dùng
+#  Kubernetes (K8s) hoặc Docker Swarm, không phải docker compose đơn thuần.
+#  Lý do: docker compose chỉ chạy trên 1 host, không có auto-scaling thực sự.
+# ==============================================================================
+
+version: '3.9'
+
+services:
+
+  postgres:
+    # Production: không expose port ra ngoài — chỉ services trong network mới access được
+    # ports: []   # BỎ hoàn toàn
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password  # dùng Docker Secrets
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  mongodb:
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  redis:
+    # Production Redis config bổ sung
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --maxmemory 1gb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+      --appendfsync everysec
+      --tcp-keepalive 60
+      --loglevel warning
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1.5G
+
+  kafka:
+    environment:
+      # Production: tăng retention, replication factor
+      KAFKA_LOG_RETENTION_HOURS: 720        # giữ 30 ngày
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3  # cần ít nhất 3 Kafka brokers
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2           # ít nhất 2 replicas phải xác nhận write
+      # Production: KHÔNG expose port 9092 ra ngoài
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+
+  opensearch:
+    environment:
+      - OPENSEARCH_JAVA_OPTS=-Xms2g -Xmx2g    # tăng heap cho production
+      - DISABLE_SECURITY_PLUGIN=false           # BẬT security ở production
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 6G
+        reservations:
+          memory: 2G
+
+  kong:
+    environment:
+      KONG_PLUGINS: bundled,rate-limiting,jwt,cors,request-size-limiting
+      KONG_NGINX_WORKER_PROCESSES: auto
+      KONG_PROXY_ACCESS_LOG: /dev/stdout json   # structured logging
+      # Rate limiting defaults
+      KONG_NGINX_HTTP_LUA_SHARED_DICT: prometheus_metrics 15m
+    ports:
+      # Production: chỉ expose proxy port, admin port PHẢI được bảo vệ bằng firewall
+      - "8000:8000"
+      # KHÔNG expose 8001 (Admin API) và 8002 (Manager UI) ra internet
+    deploy:
+      replicas: 2          # chạy 2 Kong instances để high availability
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+      update_config:
+        parallelism: 1     # deploy rolling update: từng instance một
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  grafana:
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_SERVER_ROOT_URL: https://monitoring.yourdomain.com  # thay bằng domain thật
+      GF_SECURITY_SECRET_KEY: ${GRAFANA_SECRET_KEY}
+      GF_SMTP_ENABLED: 'true'       # enable email alerts
+      GF_SMTP_HOST: ${SMTP_HOST}
+      GF_SMTP_USER: ${SMTP_USER}
+      GF_SMTP_PASSWORD: ${SMTP_PASSWORD}
+
+# ==============================================================================
+# DOCKER SECRETS — An toàn hơn environment variables
+# ==============================================================================
+# Docker Secrets: file được mount vào /run/secrets/ bên trong container
+# → Không bị lộ qua `docker inspect` hay env variable leak
+# → Dùng cho production, đặc biệt khi deploy lên Docker Swarm
+#
+# Cách dùng:
+#   echo "supersecretpassword" | docker secret create postgres_password -
+# ==============================================================================
+
+secrets:
+  postgres_password:
+    external: true    # secret đã được tạo bên ngoài, không tạo từ file
+  mongo_password:
+    external: true
+  redis_password:
+    external: true

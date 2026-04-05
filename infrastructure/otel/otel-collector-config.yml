@@ -1,0 +1,211 @@
+# ==============================================================================
+#  OpenTelemetry Collector Configuration
+#  infrastructure/otel/otel-collector-config.yml
+#
+#  TẠI SAO CẦN OTEL COLLECTOR? JAEGER THÔI CHƯA ĐỦ SAO?
+#  ─────────────────────────────────────────────────────
+#  Bạn CÓ THỂ gửi traces thẳng từ app → Jaeger. Nhưng đó là anti-pattern.
+#
+#  Vấn đề khi gửi thẳng vào Jaeger:
+#  → Coupling cứng: muốn đổi backend (Zipkin, Tempo, Datadog) → sửa code TẤT CẢ services
+#  → Không có buffer: Jaeger down → traces mất, app bị block nếu gửi sync
+#  → Không xử lý được: không filter, không sample, không enrich data
+#
+#  Giải pháp — OTel Collector làm "trung gian thông minh":
+#
+#   [App Services] ──OTLP──→ [OTel Collector] ──→ [Jaeger]      (traces)
+#                                              ──→ [Prometheus]  (metrics)
+#                                              ──→ [OpenSearch]  (logs)
+#
+#  → Một lần config ở Collector, app services KHÔNG đổi gì khi đổi backend
+#  → Collector có buffer, retry → không mất data khi backend tạm down
+#  → Có thể sample: chỉ giữ 10% traces bình thường, 100% traces có error
+#
+#  OTLP (OpenTelemetry Protocol): chuẩn giao tiếp của OTel ecosystem
+# ==============================================================================
+
+receivers:
+  # ──────────────────────────────────────────────────────
+  # OTLP Receiver: nhận traces/metrics/logs từ app services
+  # App chỉ cần biết địa chỉ Collector — không cần biết Jaeger hay Prometheus
+  # ──────────────────────────────────────────────────────
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317    # gRPC — hiệu năng cao, dùng cho internal
+      http:
+        endpoint: 0.0.0.0:4318    # HTTP/JSON — dễ debug, dùng cho browser/mobile
+
+  # ──────────────────────────────────────────────────────
+  # Prometheus Receiver: scrape metrics từ services (pull model)
+  # OTel Collector có thể THAY THẾ Prometheus scraper nếu muốn
+  # ──────────────────────────────────────────────────────
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otel-collector-self'
+          scrape_interval: 15s
+          static_configs:
+            - targets: ['localhost:8888']  # collector tự monitor chính nó
+
+processors:
+  # ──────────────────────────────────────────────────────
+  # Batch Processor: gom traces lại rồi gửi một lần
+  # → Giảm số lượng network calls → tăng throughput đáng kể
+  # → Timeout: gửi sau mỗi 5s dù chưa đủ batch size
+  # ──────────────────────────────────────────────────────
+  batch:
+    timeout: 5s
+    send_batch_size: 1024
+    send_batch_max_size: 2048
+
+  # ──────────────────────────────────────────────────────
+  # Memory Limiter: bảo vệ Collector không bị OOM (Out of Memory)
+  # → check_interval: kiểm tra memory mỗi giây
+  # → limit_mib: nếu dùng hơn 512MB → bắt đầu drop data
+  # → spike_limit_mib: buffer cho memory spikes
+  # ──────────────────────────────────────────────────────
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+
+  # ──────────────────────────────────────────────────────
+  # Tail Sampling Processor: "sampling thông minh"
+  # ──────────────────────────────────────────────────────
+  # Vấn đề: production có hàng nghìn requests/giây → lưu 100% traces = tốn tiền
+  # Head sampling (random): quyết định sample NGAY KHI request bắt đầu
+  #   → Đơn giản, nhưng có thể bỏ sót traces quan trọng (errors)
+  # Tail sampling: đợi trace HOÀN THÀNH rồi mới quyết định có lưu không
+  #   → Biết được error/slow → đảm bảo LUÔN giữ traces có vấn đề
+  #
+  # Policy bên dưới:
+  #   always_sample_errors  : 100% traces có status ERROR → LUÔN giữ
+  #   slow_traces           : traces > 1000ms → LUÔN giữ (latency issues)
+  #   probabilistic_10pct   : 10% traces còn lại → giữ ngẫu nhiên (normal traffic)
+  tail_sampling:
+    decision_wait: 10s       # đợi 10s sau span cuối cùng để quyết định
+    num_traces: 50000        # buffer tối đa 50k traces đang pending
+    expected_new_traces_per_sec: 100
+    policies:
+      - name: always_sample_errors
+        type: status_code
+        status_code:
+          status_codes: [ERROR]
+
+      - name: slow_traces
+        type: latency
+        latency:
+          threshold_ms: 1000
+
+      - name: probabilistic_10pct
+        type: probabilistic
+        probabilistic:
+          sampling_percentage: 10
+
+  # ──────────────────────────────────────────────────────
+  # Resource Detection: tự động thêm metadata về môi trường
+  # → Detect: Docker container info, OS info, process info
+  # → Giúp biết trace này đến từ container nào, host nào
+  # ──────────────────────────────────────────────────────
+  resourcedetection:
+    detectors: [env, docker, system]
+    timeout: 5s
+    override: false
+
+  # ──────────────────────────────────────────────────────
+  # Attributes Processor: thêm/sửa/xóa attributes của spans
+  # → Thêm environment tag vào mọi trace
+  # → Xóa thông tin nhạy cảm (PII) trước khi lưu
+  # ──────────────────────────────────────────────────────
+  attributes:
+    actions:
+      - key: environment
+        value: ${ENVIRONMENT}
+        action: upsert
+      - key: project
+        value: ecommerce-platform
+        action: upsert
+      # XÓA fields nhạy cảm khỏi traces trước khi export
+      - key: http.request.header.authorization
+        action: delete
+      - key: http.request.header.cookie
+        action: delete
+
+exporters:
+  # ──────────────────────────────────────────────────────
+  # Jaeger Exporter: gửi traces đến Jaeger backend
+  # ──────────────────────────────────────────────────────
+  otlp/jaeger:
+    endpoint: jaeger:4317      # Jaeger nhận OTLP qua gRPC
+    tls:
+      insecure: true           # local dev: không cần TLS
+
+  # ──────────────────────────────────────────────────────
+  # Prometheus Exporter: expose metrics để Prometheus scrape
+  # ──────────────────────────────────────────────────────
+  prometheus:
+    endpoint: 0.0.0.0:8889    # Prometheus scrape endpoint của Collector
+
+  # ──────────────────────────────────────────────────────
+  # Debug Exporter: in traces ra console (chỉ dùng khi debug)
+  # ──────────────────────────────────────────────────────
+  debug:
+    verbosity: basic           # basic | normal | detailed
+
+  # ──────────────────────────────────────────────────────
+  # OpenSearch/Elasticsearch Exporter: gửi logs có trace context
+  # Giúp correlate logs với traces (click vào log → xem trace)
+  # ──────────────────────────────────────────────────────
+  # elasticsearch/opensearch:
+  #   endpoints: ["http://opensearch:9200"]
+  #   index: "otel-traces-%{+yyyy.MM.dd}"
+
+extensions:
+  # Health check endpoint: Docker healthcheck dùng cái này
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+  # pprof: Go profiling endpoint cho Collector itself
+  pprof:
+    endpoint: 0.0.0.0:1777
+
+  # zpages: debug traces đang in-flight (http://otel-collector:55679/debug/tracez)
+  zpages:
+    endpoint: 0.0.0.0:55679
+
+# ==============================================================================
+# PIPELINES — Kết nối receivers → processors → exporters
+# ==============================================================================
+# Đây là "routing table" của Collector
+# Mỗi signal type (traces/metrics/logs) có pipeline riêng
+# ==============================================================================
+
+service:
+  extensions: [health_check, pprof, zpages]
+
+  pipelines:
+    # TRACES pipeline
+    traces:
+      receivers:  [otlp]
+      processors: [memory_limiter, resourcedetection, attributes, tail_sampling, batch]
+      exporters:  [otlp/jaeger, debug]
+
+    # METRICS pipeline
+    metrics:
+      receivers:  [otlp, prometheus]
+      processors: [memory_limiter, resourcedetection, batch]
+      exporters:  [prometheus]
+
+    # LOGS pipeline (khi app services gửi logs qua OTLP)
+    logs:
+      receivers:  [otlp]
+      processors: [memory_limiter, resourcedetection, attributes, batch]
+      exporters:  [debug]
+
+  # Telemetry của chính Collector (meta-monitoring)
+  telemetry:
+    logs:
+      level: info
+    metrics:
+      address: 0.0.0.0:8888   # Prometheus có thể scrape metrics của Collector
