@@ -32,8 +32,8 @@ jobs:
 
       - name: Run unit tests (no DB required — mock-based)
         run: |
-          pytest apps/ \
-            --cov=apps \
+          pytest applications/ \
+            --cov=applications \
             --cov-report=xml \
             --cov-fail-under=80 \
             -v
