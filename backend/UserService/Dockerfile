@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN pip install --upgrade pip
-RUN pip install -r base.txt
+RUN pip install -r requirements.txt
 # Set environment variables
 # ENV PYTHONDONTWRITEBYTECODE=1
 # ENV PYTHONUNBUFFERED=1
