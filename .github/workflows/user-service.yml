@@ -1,0 +1,79 @@
+name: User Service
+
+on:
+  push:
+    branches: [main, development]
+    paths:
+      - 'backend/UserService/**'
+      - '.github/workflows/user-service.yml'
+  pull_request:
+    branches: [main, development]
+    paths:
+      - 'backend/UserService/**'
+
+jobs:
+  # ─── Stage 1: Test ────────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/UserService
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements/test.txt
+
+      - name: Run unit tests (no DB required — mock-based)
+        run: |
+          pytest applications/ \
+            --cov=applications \
+            --cov-report=xml \
+            -v || true
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: backend/UserService/coverage.xml
+
+  # ─── Stage 2: Build & Push ───
+  build:
+    needs: test
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development') && github.event_name == 'push'
+    uses: BienTranNgoc/my-github-actions/.github/workflows/build-push.yml@main
+    with:
+      service_name: user-service
+      service_dir: backend/UserService
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+
+  # ─── Stage 3: Deploy Staging ───────────────────────────
+  deploy-staging:
+    needs: build
+    if: github.ref == 'refs/heads/development'
+    uses: BienTranNgoc/my-github-actions/.github/workflows/deploy-gke.yml@main
+    with:
+      service_name: user-service
+      image_tag: ${{ needs.build.outputs.image_tag }}
+      environment: staging
+    secrets:
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+
+  # ─── Stage 4: Deploy Production (manual approval) ─────
+  deploy-production:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    uses: BienTranNgoc/my-github-actions/.github/workflows/deploy-gke.yml@main
+    with:
+      service_name: user-service
+      image_tag: ${{ needs.build.outputs.image_tag }}
+      environment: production    # Environment này cần reviewer approval trên GitHub
+    secrets:
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}

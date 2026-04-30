@@ -1,0 +1,105 @@
+# ==============================================================================
+#  prometheus.yml — Prometheus Scrape Configuration
+#
+#  Prometheus hoạt động theo mô hình PULL:
+#  → Prometheus chủ động "scrape" (lấy) metrics từ target theo interval
+#  → Khác với push model (Datadog, StatsD) — target chủ động gửi metrics
+#
+#  Mỗi microservice sẽ expose endpoint GET /metrics trả về format Prometheus
+#  Ví dụ: http_requests_total{method="GET", status="200", path="/products"} 1234
+#
+#  Metrics Types:
+#  → Counter: chỉ tăng (total requests, total errors)
+#  → Gauge: tăng/giảm (current connections, memory usage)
+#  → Histogram: phân phối giá trị (request duration buckets)
+#  → Summary: tương tự Histogram nhưng tính quantile phía client
+# ==============================================================================
+
+global:
+  # Scrape mỗi 15 giây — balance giữa granularity và overhead
+  scrape_interval: 15s
+  # Evaluate alerting rules mỗi 15 giây
+  evaluation_interval: 15s
+  # Labels được thêm vào mọi time series
+  external_labels:
+    environment: 'local'
+    project: 'ecommerce-platform'
+
+# Alerting: kết nối với Alertmanager (sẽ setup ở Phase 5)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
+# Rule files: chứa alerting rules và recording rules
+# rule_files:
+#   - '/etc/prometheus/rules/*.yml'
+
+# ==============================================================================
+# SCRAPE CONFIGS — Danh sách targets Prometheus sẽ scrape
+# ==============================================================================
+
+scrape_configs:
+
+  # Prometheus tự monitor chính nó
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Infrastructure Services
+  - job_name: 'kong'
+    static_configs:
+      - targets: ['kong:8001']    # Kong Admin API expose Prometheus metrics
+    metrics_path: /metrics
+
+  - job_name: 'postgres'
+    # postgres-exporter: sidecar container chuyển đổi PG stats → Prometheus format
+    # Sẽ thêm postgres-exporter container ở Phase 5
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  - job_name: 'redis'
+    # redis-exporter: tương tự, export Redis metrics
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  # ===========================================================================
+  # Application Microservices — Sẽ được uncomment khi code từng service (Phase 2)
+  # Mỗi Django service cần cài django-prometheus package
+  # ===========================================================================
+
+  # - job_name: 'user-service'
+  #   static_configs:
+  #     - targets: ['user-service:8000']
+  #   metrics_path: /metrics
+  #   # Service labels giúp filter metrics theo service trong Grafana
+  #   relabel_configs:
+  #     - source_labels: [__address__]
+  #       target_label: instance
+  #     - target_label: service
+  #       replacement: user-service
+
+  # - job_name: 'product-service'
+  #   static_configs:
+  #     - targets: ['product-service:8000']
+  #   metrics_path: /metrics
+
+  # - job_name: 'cart-service'
+  #   static_configs:
+  #     - targets: ['cart-service:8000']
+  #   metrics_path: /metrics
+
+  # - job_name: 'order-service'
+  #   static_configs:
+  #     - targets: ['order-service:8000']
+  #   metrics_path: /metrics
+
+  # - job_name: 'payment-service'
+  #   static_configs:
+  #     - targets: ['payment-service:8000']
+  #   metrics_path: /metrics
+
+  # - job_name: 'notification-service'
+  #   static_configs:
+  #     - targets: ['notification-service:8080']  # Go service, port khác
+  #   metrics_path: /metrics

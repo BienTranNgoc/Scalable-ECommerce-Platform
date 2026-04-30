@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    spec:
+      containers:
+        - name: user-service
+          image: user-service   # Kustomize sẽ override tag này
+          envFrom:
+            - secretRef:
+                name: user-service-secrets

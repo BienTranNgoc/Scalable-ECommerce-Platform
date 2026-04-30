@@ -1,0 +1,692 @@
+# ==============================================================================
+#  ECOMMERCE PLATFORM — BASE INFRASTRUCTURE
+#  docker-compose.yml
+#
+#  TRIẾT LÝ THIẾT KẾ (Design Philosophy):
+#  File này là "bản khai sinh" của toàn bộ hạ tầng. Nó KHÔNG chứa app services
+#  (user-service, product-service...) — những thứ đó sẽ được thêm ở Phase 2.
+#  File này chỉ định nghĩa INFRASTRUCTURE: databases, brokers, gateways, monitoring.
+#
+#  CÁCH DÙNG:
+#    Local dev  : docker compose up -d                         (tự động load override.yml)
+#    Staging    : docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d
+#    Production : docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+#  LƯU Ý QUAN TRỌNG:
+#    - Luôn tạo file .env từ .env.example trước khi chạy
+#    - Không bao giờ commit file .env lên git
+# ==============================================================================
+
+version: '3.9'
+
+# ==============================================================================
+# NETWORKS — Lớp cách ly mạng
+# ==============================================================================
+# Tại sao cần nhiều network?
+# → Nguyên tắc "Principle of Least Privilege": một service chỉ nên "nhìn thấy"
+#   những service mà nó thực sự cần nói chuyện.
+# → Ví dụ: Grafana cần thấy Prometheus, nhưng KHÔNG cần thấy Kafka hay Postgres.
+#
+# backend-net  : Nơi các microservices + databases giao tiếp nội bộ
+# gateway-net  : Kong proxy đứng giữa internet và backend
+# monitoring-net: Prometheus, Grafana, OpenSearch Dashboards
+# ==============================================================================
+
+networks:
+  backend-net:
+    driver: bridge
+    name: ecommerce_backend
+    # ipam: quản lý địa chỉ IP thủ công — hữu ích khi debug network issues
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+
+  gateway-net:
+    driver: bridge
+    name: ecommerce_gateway
+
+  monitoring-net:
+    driver: bridge
+    name: ecommerce_monitoring
+
+  tracing-net:
+    driver: bridge
+    name: ecommerce_tracing
+    # Network riêng cho tracing: OTel Collector + Jaeger
+    # Services chỉ cần join backend-net để gửi traces đến Collector
+    # Collector → Jaeger giao tiếp qua tracing-net (cách ly với app traffic)
+
+    # ==============================================================================
+    # VOLUMES — Nơi dữ liệu "sống sót" sau khi container bị xóa
+    # ==============================================================================
+    # Tại sao cần volumes?
+    # → Container là EPHEMERAL (tạm thời). Khi container bị xóa hoặc restart,
+    #   mọi dữ liệu trong container sẽ MẤT SẠCH nếu không có volume.
+    # → Volume = ổ cứng ảo nằm ngoài container, do Docker Engine quản lý.
+    #
+    # Named volumes (kiểu này) vs Bind mounts (./path:/container/path):
+    # → Named volumes: Docker tự quản lý path trên host, portable, dùng cho production data
+    # → Bind mounts: Map thẳng folder trên máy host vào container, dùng cho dev (hot reload)
+    # ==============================================================================
+
+volumes:
+  # Databases
+  postgres_data:
+    name: ecommerce_postgres_data
+  mongodb_data:
+    name: ecommerce_mongodb_data
+  redis_data:
+    name: ecommerce_redis_data
+
+  # Message Broker
+  kafka_data:
+    name: ecommerce_kafka_data
+  zookeeper_data:
+    name: ecommerce_zookeeper_data
+  zookeeper_logs:
+    name: ecommerce_zookeeper_logs
+
+  # Search & Logging
+  opensearch_data:
+    name: ecommerce_opensearch_data
+
+  # API Gateway
+  kong_postgres_data:
+    name: ecommerce_kong_postgres_data
+
+  # Service Discovery
+  consul_data:
+    name: ecommerce_consul_data
+
+  # Monitoring
+  prometheus_data:
+    name: ecommerce_prometheus_data
+  grafana_data:
+    name: ecommerce_grafana_data
+
+  # Distributed Tracing
+  jaeger_data:
+    name: ecommerce_jaeger_data
+
+  # Log Pipeline
+  logstash_data:
+    name: ecommerce_logstash_data
+
+# ==============================================================================
+# SERVICES
+# ==============================================================================
+
+services:
+
+  # ============================================================================
+  # BLOCK 1: RELATIONAL DATABASE — PostgreSQL
+  # ============================================================================
+  # Dùng cho: User Service, Order Service, Payment Service, Kong (API Gateway)
+  # Tại sao một instance, nhiều database?
+  # → Trong PRODUCTION thực tế, mỗi service có PostgreSQL riêng (Database per Service pattern)
+  # → Trong LOCAL DEV, chạy nhiều instance vừa tốn RAM vừa khó quản lý
+  # → Giải pháp: 1 PostgreSQL instance + nhiều database → script init tự tạo
+  # ============================================================================
+
+  postgres:
+    image: postgres:15-alpine # alpine = image nhỏ hơn ~3x so với bản full
+    container_name: ecommerce-postgres
+    restart: unless-stopped # tự restart trừ khi mình chủ động stop
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      # Biến custom này được script init-multiple-dbs.sh đọc để tạo nhiều DB
+      POSTGRES_MULTIPLE_DATABASES: users_db,orders_db,payments_db,kong_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Script này chạy MỘT LẦN khi container khởi tạo lần đầu
+      - ./infrastructure/postgres/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh:ro
+    networks:
+      - backend-net
+    # HEALTHCHECK: Docker dùng cái này để biết service đã "sẵn sàng" chưa
+    # → Quan trọng vì depends_on với condition: service_healthy
+    # → Không có healthcheck, depends_on chỉ đợi container START, không đợi SERVICE READY
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d postgres" ]
+      interval: 10s # kiểm tra mỗi 10s
+      timeout: 5s # timeout sau 5s nếu không response
+      retries: 5 # sau 5 lần fail → container = unhealthy
+      start_period: 30s # bỏ qua healthcheck trong 30s đầu (cho service khởi động)
+
+  # ============================================================================
+  # BLOCK 2: DOCUMENT DATABASE — MongoDB
+  # ============================================================================
+  # Dùng cho: Product Catalog Service
+  # Tại sao MongoDB cho Catalog?
+  # → Product schema rất linh hoạt: áo thì có size/màu, laptop thì có RAM/CPU/...
+  # → Relational DB cần schema cứng nhắc → phải dùng nhiều bảng phức tạp (EAV pattern)
+  # → MongoDB: mỗi document có thể có shape khác nhau → flexible attributes
+  # ============================================================================
+
+  mongodb:
+    image: mongo:6.0
+    container_name: ecommerce-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: catalog_db
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - backend-net
+    healthcheck:
+      test: [ "CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok", "--username", "${MONGO_USER}", "--password", "${MONGO_PASSWORD}", "--authenticationDatabase", "admin" ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # ============================================================================
+  # BLOCK 3: IN-MEMORY CACHE — Redis
+  # ============================================================================
+  # Dùng cho: Session/JWT token blacklist, Cart Service (primary store), Product cache
+  # Tại sao Redis?
+  # → Tốc độ: dữ liệu trong RAM → đọc/ghi microseconds vs milliseconds của disk DB
+  # → TTL native: tự động xóa data hết hạn (perfect cho sessions, OTP, cache)
+  # → Data structures: không chỉ key-value, còn có List, Set, Sorted Set, Hash
+  #
+  # maxmemory-policy allkeys-lru:
+  # → Khi Redis đầy, tự động xóa những key ÍT ĐƯỢC DÙNG NHẤT (Least Recently Used)
+  # → Đây là policy phù hợp nhất cho cache use case
+  # ============================================================================
+
+  redis:
+    image: redis:7-alpine
+    container_name: ecommerce-redis
+    restart: unless-stopped
+    command: >
+      redis-server --requirepass ${REDIS_PASSWORD} --maxmemory 256mb --maxmemory-policy allkeys-lru --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend-net
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # BLOCK 4: MESSAGE BROKER — Zookeeper + Kafka + Kafka UI
+  # ============================================================================
+  # Tại sao cần Message Broker?
+  # → Synchronous (REST): Service A gọi Service B → A phải CHỜ B trả lời
+  #   Vấn đề: nếu B chậm hoặc down → A bị block → cascade failure
+  # → Asynchronous (Kafka): A publish event vào Kafka → Kafka lưu trữ → B consume khi sẵn sàng
+  #   → Services DECOUPLED: A không cần biết B có tồn tại không
+  #
+  # Kafka Topics chúng ta sẽ dùng:
+  #   order.created      → Order Service publish → Payment + Notification consume
+  #   payment.completed  → Payment Service publish → Order + Notification consume
+  #   payment.failed     → Payment Service publish → Order + Notification consume
+  #   user.registered    → User Service publish → Notification consume
+  #
+  # Tại sao cần Zookeeper?
+  # → Kafka dùng Zookeeper để quản lý cluster metadata, leader election
+  # → Kafka 3.x+ có KRaft mode (không cần Zookeeper) nhưng Confluent image vẫn phổ biến với ZK
+  # ============================================================================
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: ecommerce-zookeeper
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000    # đơn vị thời gian cơ bản của ZK (milliseconds)
+      ZOOKEEPER_SYNC_LIMIT: 2      # max lag giữa leader và follower
+      # Enable 4LW commands for healthcheck
+      KAFKA_OPTS: "-Dzookeeper.4lw.commands.whitelist=*"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    networks:
+      - backend-net
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc -w 2 localhost 2181 | grep imok || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: ecommerce-kafka
+    restart: unless-stopped
+    depends_on:
+      zookeeper:
+        condition: service_healthy # Kafka CHỈ start sau khi ZK healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+      # LISTENER ARCHITECTURE — Đây là phần hay gây nhầm lẫn nhất:
+      # → PLAINTEXT (internal): kafka:29092 → dùng BÊN TRONG docker network
+      #   (các microservices trong docker dùng địa chỉ này)
+      # → PLAINTEXT_HOST (external): localhost:9092 → dùng TỪ MÁY HOST
+      #   (khi bạn dùng kafka-ui hoặc CLI tool trên máy thật)
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:${KAFKA_PORT:-9092}
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1 # local chỉ có 1 broker nên = 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true' # tự tạo topic khi publish lần đầu
+      KAFKA_NUM_PARTITIONS: 3 # 3 partitions = 3 consumers parallel
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_LOG_RETENTION_HOURS: 168 # giữ messages 7 ngày
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - backend-net
+    healthcheck:
+      test: [ "CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # Kafka UI: giao diện web để xem topics, messages, consumer groups
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: ecommerce-kafka-ui
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      KAFKA_CLUSTERS_0_NAME: ecommerce-local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+      - backend-net
+      - monitoring-net
+
+  # ============================================================================
+  # BLOCK 5: SEARCH ENGINE — OpenSearch
+  # ============================================================================
+  # Dùng cho: Full-text search sản phẩm, aggregated logging
+  # Tại sao OpenSearch chứ không phải SQL LIKE '%query%'?
+  # → SQL LIKE không dùng được index → full table scan → chậm với triệu records
+  # → OpenSearch: inverted index, typo tolerance, relevance scoring, faceted search
+  # → Ví dụ: search "iphone 15 pro" → tìm được "Apple iPhone 15 Pro Max 256GB"
+  #
+  # OpenSearch vs Elasticsearch:
+  # → OpenSearch là fork của Elasticsearch 7.10 do AWS tạo ra (open source)
+  # → API tương thích với Elasticsearch → dễ migrate
+  # ============================================================================
+
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    container_name: ecommerce-opensearch
+    restart: unless-stopped
+    environment:
+      - cluster.name=ecommerce-cluster
+      - node.name=opensearch-node1
+      - discovery.type=single-node # single node cho local dev
+      - bootstrap.memory_lock=true # prevent JVM heap từ bị swap ra disk
+      - OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m # JVM heap size
+      # QUAN TRỌNG: Chỉ disable security ở LOCAL DEV, KHÔNG bao giờ dùng ở prod
+      - DISABLE_SECURITY_PLUGIN=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+    ulimits:
+      # Yêu cầu hệ thống để OpenSearch hoạt động ổn định
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    networks:
+      - backend-net
+      - monitoring-net
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health | grep -v '\"status\":\"red\"'" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s # OpenSearch khởi động chậm, cần nhiều thời gian hơn
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.11.0
+    container_name: ecommerce-opensearch-dashboards
+    restart: unless-stopped
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    environment:
+      OPENSEARCH_HOSTS: '["http://opensearch:9200"]'
+      DISABLE_SECURITY_DASHBOARDS_PLUGIN: 'true'
+    networks:
+      - monitoring-net
+
+  # ============================================================================
+  # BLOCK 6: API GATEWAY — Kong
+  # ============================================================================
+  # Tại sao cần API Gateway?
+  # → Không có Gateway: client phải biết địa chỉ của TỪNG service (chaos!)
+  #   User: localhost:8001, Product: localhost:8002, Order: localhost:8003...
+  # → Với Gateway: client CHỈ biết 1 địa chỉ duy nhất (localhost:8000)
+  #   Gateway tự route đến đúng service + xử lý auth, rate limiting, logging
+  #
+  # Kong hoạt động theo mô hình:
+  #   Internet → Kong:8000 (proxy) → Route matching → Plugin chain → Upstream service
+  #
+  # kong-migration: chạy database migration cho Kong (1 lần duy nhất)
+  # kong: API Gateway chính
+  # ============================================================================
+
+  kong-migration:
+    image: kong:3.4-ubuntu
+    container_name: ecommerce-kong-migration
+    command: kong migrations bootstrap
+    restart: on-failure # retry nếu postgres chưa ready
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: postgres
+      KONG_PG_PORT: 5432
+      KONG_PG_DATABASE: kong_db
+      KONG_PG_USER: ${POSTGRES_USER}
+      KONG_PG_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - backend-net
+
+  kong:
+    image: kong:3.4-ubuntu
+    container_name: ecommerce-kong
+    restart: unless-stopped
+    depends_on:
+      kong-migration:
+        condition: service_completed_successfully # đợi migration xong hoàn toàn
+      postgres:
+        condition: service_healthy
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: postgres
+      KONG_PG_PORT: 5432
+      KONG_PG_DATABASE: kong_db
+      KONG_PG_USER: ${POSTGRES_USER}
+      KONG_PG_PASSWORD: ${POSTGRES_PASSWORD}
+
+      # Logging ra stdout/stderr → Docker log driver gom lại
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+
+      # Admin API: quản lý Kong programmatically (thêm routes, plugins...)
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+      # Kong Manager: giao diện web admin
+      KONG_ADMIN_GUI_URL: http://localhost:${KONG_GUI_PORT:-8002}
+      KONG_ADMIN_GUI_API_URL: http://localhost:${KONG_ADMIN_PORT:-8001}
+    networks:
+      - backend-net
+      - gateway-net
+    healthcheck:
+      test: [ "CMD", "kong", "health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ============================================================================
+  # BLOCK 7: SERVICE DISCOVERY — Consul
+  # ============================================================================
+  # Tại sao cần Service Discovery?
+  # → Trong môi trường dynamic (Kubernetes, Docker Swarm), service instances
+  #   có thể scale up/down, IP thay đổi liên tục
+  # → Consul: service registry — mỗi service tự đăng ký khi start, hủy khi stop
+  # → Các service khác query Consul để biết "hiện tại order-service đang ở đâu?"
+  #
+  # Mode -dev: không persist data, chỉ dùng để dev/test
+  # Mode production: cần cluster ít nhất 3 nodes để đảm bảo high availability
+  # ============================================================================
+
+  consul:
+    image: hashicorp/consul:1.17
+    container_name: ecommerce-consul
+    restart: unless-stopped
+    command: agent -dev -client=0.0.0.0 -ui
+    volumes:
+      - consul_data:/consul/data
+    networks:
+      - backend-net
+      - monitoring-net
+    healthcheck:
+      test: [ "CMD", "consul", "members" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # BLOCK 8: MONITORING — Prometheus + Grafana
+  # ============================================================================
+  # Prometheus: Pull-based metrics collector
+  # → Định kỳ "scrape" (kéo) metrics từ /metrics endpoint của mỗi service
+  # → Lưu time-series data (dữ liệu theo thời gian)
+  # → Query bằng PromQL
+  #
+  # Grafana: Visualization layer
+  # → Connect vào Prometheus, OpenSearch, hoặc bất kỳ datasource nào
+  # → Tạo dashboards đẹp: request rate, error rate, latency, CPU, RAM...
+  # → Alert khi metrics vượt ngưỡng → gửi Slack/email
+  #
+  # Mô hình RED: Rate, Errors, Duration — 3 metrics cốt lõi cho mọi service
+  # ============================================================================
+
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: ecommerce-prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d' # giữ data 15 ngày
+      - '--web.enable-lifecycle' # cho phép reload config không restart
+      - '--web.enable-admin-api'
+    volumes:
+      - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - monitoring-net
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: ecommerce-grafana
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_SERVER_DOMAIN: localhost
+      GF_ANALYTICS_REPORTING_ENABLED: 'false'
+      # Auto-provision datasources từ file thay vì setup thủ công qua UI
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infrastructure/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - monitoring-net
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:3000/api/health || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # ============================================================================
+  # BLOCK 9: DISTRIBUTED TRACING — Jaeger + OpenTelemetry Collector
+  # ============================================================================
+  # TẠI SAO DISTRIBUTED TRACING LÀ BẮT BUỘC VỚI MICROSERVICES?
+  #
+  # Hãy tưởng tượng request này:
+  #   Client → Kong(2ms) → User-Service(5ms) → Order-Service(800ms!) → Payment(10ms)
+  #
+  # Không có tracing:
+  #   → Bạn chỉ thấy: "API /checkout mất 817ms" — không biết bottleneck ở đâu
+  #   → Check log từng service? → mò kim đáy bể, không có correlation ID thống nhất
+  #
+  # Với Jaeger + OTel:
+  #   → Một "Trace" = toàn bộ hành trình của 1 request xuyên qua nhiều services
+  #   → Mỗi "Span" = một đơn vị công việc (1 HTTP call, 1 DB query, 1 Kafka publish)
+  #   → Spans có parent-child relationship → thành "cây" trace (Trace Tree/Waterfall)
+  #   → Bạn thấy NGAY: Order-Service.getInventory(DB query) mất 795ms → đây là vấn đề
+  #
+  # KIẾN TRÚC TRACING STACK:
+  #
+  #   App Services ──OTLP──→ OTel Collector ──→ Jaeger Backend
+  #        │                      │                    │
+  #   (instrumented           (route, sample,      (store &
+  #   với OTel SDK)           enrich, buffer)      visualize)
+  #
+  # CORE CONCEPTS:
+  #   Trace    : Toàn bộ hành trình 1 request (có unique Trace ID)
+  #   Span     : Một operation trong trace (HTTP call, DB query, function call)
+  #   Context  : Trace ID + Span ID được propagate qua HTTP headers (W3C TraceContext)
+  #   Baggage  : Key-value data đi kèm theo context (vd: user_id, request_id)
+  #
+  # W3C Trace Context Header Example:
+  #   traceparent: 00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01
+  #                   └─ trace_id (128-bit) ──────────┘ └─span_id─┘ └flags
+  # ============================================================================
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # OpenTelemetry Collector
+  # ──────────────────────────────────────────────────────────────────────────
+  # Vai trò: "Traffic cop" của observability data
+  # Nhận traces/metrics/logs từ app → xử lý → route đến Jaeger/Prometheus/...
+  # ──────────────────────────────────────────────────────────────────────────
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.91.0
+    # Dùng bản "contrib" thay vì "core":
+    # → core: chỉ có official exporters/processors
+    # → contrib: thêm community plugins (tail_sampling, Jaeger exporter, ...)
+    container_name: ecommerce-otel-collector
+    restart: unless-stopped
+    command: [ "--config=/etc/otel/otel-collector-config.yml" ]
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-local}
+    volumes:
+      - ./infrastructure/otel/otel-collector-config.yml:/etc/otel/otel-collector-config.yml:ro
+    networks:
+      - backend-net # nhận traces từ microservices
+      - tracing-net # gửi traces đến Jaeger
+      - monitoring-net # expose metrics cho Prometheus
+    depends_on:
+      jaeger:
+        condition: service_healthy
+    # Note: OTel Collector contrib image is minimal and lacks wget/curl.
+    # We rely on Docker's default monitoring or can add it if needed later.
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Jaeger — Distributed Tracing Backend
+  # ──────────────────────────────────────────────────────────────────────────
+  # Jaeger all-in-one: gộp nhiều components vào 1 container cho local dev
+  # Production: tách thành jaeger-collector + jaeger-query + storage riêng
+  #
+  # Jaeger Architecture (production):
+  #   App → [jaeger-agent] → [jaeger-collector] → [Cassandra/Elasticsearch]
+  #                                                        ↑
+  #   [jaeger-query] ← [jaeger-ui] ←──────────────────────┘
+  #
+  # Storage backends Jaeger hỗ trợ:
+  #   → memory      : local dev only, mất data khi restart
+  #   → badger      : embedded key-value, single node, không cần external DB
+  #   → Cassandra   : production, distributed, handles millions of traces/day
+  #   → Elasticsearch/OpenSearch : production, cũng dùng cho logs → reuse infra
+  #
+  # Chúng ta dùng badger cho local (persist data, không cần Cassandra/ES riêng)
+  # ──────────────────────────────────────────────────────────────────────────
+  jaeger:
+    image: jaegertracing/all-in-one:1.52
+    container_name: ecommerce-jaeger
+    user: root
+    restart: unless-stopped
+    environment:
+      # Storage: badger = embedded KV store, persist qua volume
+      SPAN_STORAGE_TYPE: badger
+      BADGER_EPHEMERAL: 'false'
+      BADGER_DIRECTORY_VALUE: /badger/data
+      BADGER_DIRECTORY_KEY: /badger/key
+
+      # Sampling Strategy:
+      # → remote: Jaeger Collector cung cấp sampling rules cho clients
+      # → const: mọi request đều được trace (1=100%, 0=0%)
+      # → probabilistic: sample X% requests ngẫu nhiên
+      # Ở đây dùng remote → OTel Collector's tail_sampling quyết định thay
+      COLLECTOR_OTLP_ENABLED: 'true' # nhận traces qua OTLP protocol
+
+      # Log level
+      LOG_LEVEL: info
+
+      # Jaeger UI: giới hạn số traces trả về để tránh quá tải browser
+      QUERY_MAX_CLOCK_SKEW_ADJUSTMENT: 0
+    volumes:
+      - jaeger_data:/badger
+    networks:
+      - tracing-net
+      - monitoring-net # Jaeger UI truy cập được từ monitoring network
+    healthcheck:
+      test: [ "CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:14269/ || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ============================================================================
+  # BLOCK 10: LOG PIPELINE — Logstash
+  # ============================================================================
+  # ELK-style logging với OpenSearch:
+  # → App services → (stdout/json logs) → Logstash → OpenSearch → Dashboards
+  #
+  # Logstash Pipeline:
+  # INPUT: nhận logs từ nhiều nguồn (Beats agents, TCP, Kafka, ...)
+  # FILTER: parse, transform, enrich logs (extract fields, add geo data, ...)
+  # OUTPUT: gửi logs đã xử lý đến destination (OpenSearch, S3, ...)
+  #
+  # Beats là gì? Lightweight log shippers chạy trên từng host:
+  # → Filebeat: ship log files
+  # → Metricbeat: ship system metrics
+  # Chúng ta sẽ dùng Filebeat trong Phase 5 (Monitoring & Logging)
+  # ============================================================================
+
+  logstash:
+    image: logstash:7.17.15
+    container_name: ecommerce-logstash
+    restart: unless-stopped
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    environment:
+      LS_JAVA_OPTS: '-Xms256m -Xmx256m'
+      OPENSEARCH_HOST: opensearch:9200
+    volumes:
+      - ./infrastructure/logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - logstash_data:/usr/share/logstash/data
+    networks:
+      - backend-net
+      - monitoring-net
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -sf http://localhost:9600/_node/stats | grep -q '\"status\":\"green\"'" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s

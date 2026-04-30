@@ -1,0 +1,129 @@
+# ==============================================================================
+#  ECOMMERCE PLATFORM — LOCAL DEVELOPMENT OVERRIDES
+#  docker-compose.override.yml
+#
+#  Docker Compose TỰ ĐỘNG load file này khi bạn chạy `docker compose up`
+#  (không cần flag -f). Đây là "magic" của Docker Compose.
+#
+#  MỤC ĐÍCH: Override/bổ sung cấu hình từ docker-compose.yml cho local dev.
+#  Nguyên tắc: file này chứa những thứ CHỈ cần ở local, KHÔNG cần ở prod.
+#    - Expose ports ra máy host (để dùng DB client, Postman, ...)
+#    - Thêm dev tools (Adminer để xem DB qua browser)
+#    - Relaxed security settings
+#    - Debug flags
+# ==============================================================================
+
+version: '3.9'
+
+services:
+
+  # ============================================================================
+  # PORT EXPOSURES — Mở cổng cho local dev tools
+  # ============================================================================
+  # Tại sao BASE file không expose ports?
+  # → Trong production, chỉ Kong:8000 được expose ra internet
+  # → Expose Postgres/Redis/Kafka ra ngoài là security risk
+  # → Local dev: chúng ta CẦN connect từ máy host để debug, dùng GUI tools
+  # ============================================================================
+
+  postgres:
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"  # kết nối bằng TablePlus, DBeaver, psql
+
+  mongodb:
+    ports:
+      - "${MONGO_PORT:-27017}:27017"   # kết nối bằng MongoDB Compass
+
+  redis:
+    ports:
+      - "${REDIS_PORT:-6379}:6379"     # kết nối bằng RedisInsight, redis-cli
+
+  kafka:
+    ports:
+      - "${KAFKA_PORT:-9092}:9092"     # kết nối từ local Kafka tools
+
+  opensearch:
+    ports:
+      - "${OPENSEARCH_PORT:-9200}:9200"
+
+  opensearch-dashboards:
+    ports:
+      - "${OPENSEARCH_DASHBOARDS_PORT:-5601}:5601"   # http://localhost:5601
+
+  # Distributed Tracing
+  otel-collector:
+    ports:
+      - "4317:4317"      # OTLP gRPC — app services gửi traces vào đây
+      - "4318:4318"      # OTLP HTTP — alternative cho gRPC
+      - "8888:8888"      # Collector self-metrics (Prometheus scrape)
+      - "8889:8889"      # Prometheus exporter endpoint
+      - "55679:55679"    # zPages debug UI: http://localhost:55679/debug/tracez
+
+  jaeger:
+    ports:
+      - "${JAEGER_UI_PORT:-16686}:16686"   # Jaeger UI: http://localhost:16686
+      - "14250:14250"    # Jaeger gRPC (model.proto) — legacy
+      - "14268:14268"    # Jaeger HTTP collector — legacy
+      - "14269:14269"    # Admin/health check port
+
+  kafka-ui:
+    ports:
+      - "${KAFKA_UI_PORT:-8080}:8080"   # http://localhost:8080
+
+  kong:
+    ports:
+      - "${KONG_PROXY_PORT:-8000}:8000"    # http://localhost:8000 — proxy endpoint
+      - "${KONG_ADMIN_PORT:-8001}:8001"    # http://localhost:8001 — admin API
+      - "${KONG_GUI_PORT:-8002}:8002"      # http://localhost:8002 — Kong Manager UI
+
+  consul:
+    ports:
+      - "${CONSUL_PORT:-8500}:8500"    # http://localhost:8500 — Consul UI
+
+  prometheus:
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"  # http://localhost:9090
+
+  grafana:
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"   # http://localhost:3000
+
+  logstash:
+    ports:
+      - "${LOGSTASH_PORT:-5044}:5044"  # Beats input
+      - "9600:9600"                    # Logstash monitoring API
+
+  # ============================================================================
+  # DEV TOOLS — Chỉ chạy ở local, không bao giờ deploy lên server
+  # ============================================================================
+
+  # Adminer: Database GUI chạy trên browser — hỗ trợ PostgreSQL, MySQL, MongoDB
+  # → Truy cập: http://localhost:8090
+  # → Thay thế nhẹ hơn cho TablePlus/DBeaver khi làm việc với Docker
+  adminer:
+    image: adminer:4.8.1
+    container_name: ecommerce-adminer
+    restart: unless-stopped
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+      ADMINER_DESIGN: dracula      # dark theme cho anh em
+    networks:
+      - backend-net
+    ports:
+      - "8090:8080"
+
+  # Redis Commander: GUI cho Redis
+  # → Truy cập: http://localhost:8091
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: ecommerce-redis-commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: "local:redis:6379:0:${REDIS_PASSWORD}"
+    networks:
+      - backend-net
+    ports:
+      - "8091:8081"
+    depends_on:
+      redis:
+        condition: service_healthy

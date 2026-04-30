@@ -1,0 +1,81 @@
+{
+	"uac_userrole": [
+		{
+			"id": "1cc60c01ac8a4612b9ec264f9bcb059f",
+			"name": "Unknown",
+			"description": null,
+			"acl": 0,
+			"company_id": null,
+			"created_at": "2024-04-26 09:54:50.036862",
+			"modified_at": "2024-04-26 09:54:50.036883",
+			"is_master_role": false,
+			"is_user_created": true
+		},
+		{
+			"id": "6aa2410483514863aed6ab13e7bddca1",
+			"name": "Basic Sharer",
+			"description": null,
+			"acl": 1,
+			"company_id": null,
+			"created_at": "2024-04-17 11:54:04.160572",
+			"modified_at": "2024-11-20 16:20:23.967608",
+			"is_master_role": false,
+			"is_user_created": true
+		},
+		{
+			"id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"name": "Owner",
+			"description": null,
+			"acl": -1,
+			"company_id": null,
+			"created_at": "2024-04-17 15:57:03.922164",
+			"modified_at": "2024-11-22 14:27:36.846415",
+			"is_master_role": false,
+			"is_user_created": true
+		},
+		{
+			"id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"name": "Admin",
+			"description": null,
+			"acl": 2,
+			"company_id": null,
+			"created_at": "2024-04-17 11:53:52.339048",
+			"modified_at": "2024-11-22 14:27:30.736644",
+			"is_master_role": false,
+			"is_user_created": true
+		},
+		{
+			"id": "2c535a39-a907-4dc2-807d-a3b63715bd76",
+			"name": "Admin",
+			"description": null,
+			"acl": 2,
+			"company_id": null,
+			"created_at": "2024-04-17 11:53:52.339048",
+			"modified_at": "2024-11-22 14:27:30.736644",
+			"is_master_role": true,
+			"is_user_created": false
+		},
+		{
+			"id": "107a39f9-13d3-4a01-9f05-e3e6ad1861e",
+			"name": "Sharer",
+			"description": null,
+			"acl": 1,
+			"company_id": null,
+			"created_at": "2024-04-17 11:53:52.339048",
+			"modified_at": "2024-11-22 14:27:30.736644",
+			"is_master_role": true,
+			"is_user_created": false
+		},
+		{
+			"id": "97c0db11-0cda-4d04-bec3-c2db63613bbf",
+			"name": "Owner",
+			"description": null,
+			"acl": -1,
+			"company_id": null,
+			"created_at": "2024-04-17 11:53:52.339048",
+			"modified_at": "2024-11-22 14:27:30.736644",
+			"is_master_role": true,
+			"is_user_created": false
+		}
+	]
+}
