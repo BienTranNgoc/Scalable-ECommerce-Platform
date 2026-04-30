@@ -4,12 +4,12 @@ on:
   push:
     branches: [main, development]
     paths:
-      - 'backend/user-service/**'
+      - 'backend/UserService/**'
       - '.github/workflows/user-service.yml'
   pull_request:
     branches: [main, development]
     paths:
-      - 'backend/user-service/**'
+      - 'backend/UserService/**'
 
 jobs:
   # ─── Stage 1: Test ────────────────────────────────────
@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: backend/user-service
+        working-directory: backend/UserService
 
     steps:
       - uses: actions/checkout@v4
@@ -41,7 +41,7 @@ jobs:
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:
-          files: user-service/coverage.xml
+          files: backend/UserService/coverage.xml
 
   # ─── Stage 2: Build & Push ───
   build:
@@ -50,7 +50,7 @@ jobs:
     uses: BienTranNgoc/my-github-actions/.github/workflows/build-push.yml@main
     with:
       service_name: user-service
-      service_dir: backend/user-service
+      service_dir: backend/UserService
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
