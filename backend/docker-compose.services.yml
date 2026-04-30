@@ -1,0 +1,635 @@
+# ==============================================================================
+#  ECOMMERCE PLATFORM — APPLICATION SERVICES
+#  docker-compose.services.yml
+#
+#  File này định nghĩa TẤT CẢ microservices của application.
+#  Infrastructure (Postgres, Redis, Kafka...) đã được định nghĩa trong
+#  docker-compose.yml — file này CHỈ chứa app services.
+#
+#  CÁCH DÙNG:
+#    docker compose -f docker-compose.yml \
+#                   -f docker-compose.override.yml \
+#                   -f docker-compose.services.yml up -d
+#
+#  HOẶC dùng Makefile shortcut:
+#    make up-all
+#
+#  TẠI SAO TÁCH RA FILE RIÊNG?
+#  → Infrastructure (Postgres, Redis...) có thể chạy mà không cần app services
+#    Ví dụ: chạy `make up-db` để dev local mà không cần Docker cho app
+#  → App services thay đổi thường xuyên (mỗi feature), infrastructure ít đổi
+#  → CI/CD: build app images độc lập với infrastructure images
+#  → Dễ scale từng service riêng lẻ
+# ==============================================================================
+
+version: '3.9'
+
+# ==============================================================================
+# NETWORKS — Tái sử dụng networks đã định nghĩa trong docker-compose.yml
+# ==============================================================================
+# QUAN TRỌNG: Phải khai báo lại networks ở đây nhưng với `external: true`
+# → Báo với Docker Compose: "network này đã tồn tại, đừng tạo mới"
+# → Nếu không có `external: true` → Docker Compose tạo network mới với prefix khác
+#   → Services không thể nói chuyện với nhau dù cùng tên network!
+# ==============================================================================
+
+networks:
+  backend-net:
+    external: true        # tái dùng network từ docker-compose.yml
+    name: ecommerce_backend
+  gateway-net:
+    external: true
+    name: ecommerce_gateway
+  monitoring-net:
+    external: true
+    name: ecommerce_monitoring
+  tracing-net:
+    external: true
+    name: ecommerce_tracing
+
+# ==============================================================================
+# SERVICES
+# ==============================================================================
+
+services:
+
+  # ============================================================================
+  # AUTH SERVICE
+  # ============================================================================
+  # Go / Gin Framework
+  # Databases: PostgreSQL, Redis
+  # ============================================================================
+
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+      target: runtime
+    image: ecommerce/auth-service:${VERSION:-latest}
+    container_name: ecommerce-auth-service
+    restart: unless-stopped
+
+    # ──────────────────────────────────────────────────────
+    # ENVIRONMENT VARIABLES
+    # ──────────────────────────────────────────────────────
+    environment:
+      # Gin
+
+      # PostgreSQL
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME:
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB_CACHE: 0          # DB index 0: cache (sessions, misc)
+      REDIS_DB_TOKEN: 1          # DB index 1: token blacklist (cô lập với cache)
+      REDIS_DB_RATE_LIMIT: 2     # DB index 2: rate limiting counters
+
+      # Kafka
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092   # port 29092: internal Docker network
+      KAFKA_TOPIC_USER_REGISTERED: user.registered
+
+      # JWT
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_TOKEN_MINUTES: 60
+      JWT_REFRESH_TOKEN_DAYS: 30
+
+      # OTel Tracing
+      OTEL_SERVICE_NAME: user-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_SERVICE_VERSION: ${VERSION:-0.1.0}
+      ENVIRONMENT: local
+
+      # CORS
+      CORS_ALLOWED_ORIGINS: "http://localhost:5173,http://localhost:8000"
+
+    # ──────────────────────────────────────────────────────
+    # NETWORKS
+    # ──────────────────────────────────────────────────────
+    # backend-net: để nói chuyện với postgres, redis, kafka
+    # gateway-net: để Kong forward requests vào
+    # tracing-net: để gửi traces đến otel-collector
+    # monitoring-net: KHÔNG join — không cần Grafana biết đến service này trực tiếp
+    # ──────────────────────────────────────────────────────
+    networks:
+      - backend-net
+      - gateway-net
+      - tracing-net
+
+    # ──────────────────────────────────────────────────────
+    # DEPENDS_ON
+    # ──────────────────────────────────────────────────────
+    # condition: service_healthy → đợi healthcheck pass, không chỉ container start
+    # Nếu thiếu: auth-service start trước khi postgres ready → crash → restart loop
+    # ──────────────────────────────────────────────────────
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      otel-collector:
+        condition: service_healthy
+
+    # ──────────────────────────────────────────────────────
+    # VOLUMES — Hot reload cho local dev
+    # ──────────────────────────────────────────────────────
+    # Bind mount: map source code từ máy host vào container
+    # → Sửa file trên máy → container thấy ngay (không cần rebuild image)
+    # → Chỉ dùng cho dev, KHÔNG dùng ở production
+    # ──────────────────────────────────────────────────────
+    volumes:
+      - ./auth-service:/app:cached  # :cached = macOS performance optimization
+      # Loại trừ những thứ không nên sync từ host vào container:
+      - /app/__pycache__            # Python bytecode của container, không dùng trên host
+      - /app/.venv                  # virtualenv của container
+
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================================================
+  # USER SERVICE
+  # ============================================================================
+  # Python / Django REST Framework
+  # Databases: PostgreSQL (users_db), Redis (sessions + token blacklist)
+  # Produces: user.registered (Kafka)
+  # Consumes: — (không consume event nào)
+  # ============================================================================
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+      # target: runtime   ← nếu dùng multi-stage build, chỉ build stage "runtime"
+    image: ecommerce/user-service:${VERSION:-latest}
+    container_name: ecommerce-user-service
+    restart: unless-stopped
+
+    # ──────────────────────────────────────────────────────
+    # ENVIRONMENT VARIABLES
+    # ──────────────────────────────────────────────────────
+    # Nguyên tắc 12-Factor App: config qua env vars, không hardcode
+    #
+    # Có 3 loại config:
+    # 1. Secrets (passwords, keys): luôn đến từ .env file, KHÔNG hardcode
+    # 2. Service discovery (hostnames): dùng Docker service name (ví dụ: "postgres")
+    #    Docker DNS tự resolve "postgres" → IP của postgres container
+    # 3. Tuning (pool size, timeout): có thể hardcode default hợp lý
+    # ──────────────────────────────────────────────────────
+    environment:
+      # Django
+      DJANGO_SETTINGS_MODULE: config.settings.local
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+      ALLOWED_HOSTS: "localhost,user-service,0.0.0.0"
+
+      # PostgreSQL — "postgres" là Docker service name, tự resolve bởi Docker DNS
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: users_db
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      # Redis — xem phần giải thích chi tiết bên dưới
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB_CACHE: 0          # DB index 0: cache (sessions, misc)
+      REDIS_DB_TOKEN: 1          # DB index 1: token blacklist (cô lập với cache)
+      REDIS_DB_RATE_LIMIT: 2     # DB index 2: rate limiting counters
+
+      # Kafka
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092   # port 29092: internal Docker network
+      KAFKA_TOPIC_USER_REGISTERED: user.registered
+
+      # JWT
+      JWT_PRIVATE_KEY: ${JWT_PRIVATE_KEY}
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_TOKEN_MINUTES: 60
+      JWT_REFRESH_TOKEN_DAYS: 30
+
+      # OTel Tracing
+      OTEL_SERVICE_NAME: user-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_SERVICE_VERSION: ${VERSION:-0.1.0}
+      ENVIRONMENT: local
+
+      # CORS
+      CORS_ALLOWED_ORIGINS: "http://localhost:5173,http://localhost:8000"
+
+    # ──────────────────────────────────────────────────────
+    # NETWORKS — Service này join những networks nào?
+    # ──────────────────────────────────────────────────────
+    # backend-net: để nói chuyện với postgres, redis, kafka
+    # gateway-net: để Kong forward requests vào
+    # tracing-net: để gửi traces đến otel-collector
+    # monitoring-net: KHÔNG join — không cần Grafana biết đến service này trực tiếp
+    # ──────────────────────────────────────────────────────
+    networks:
+      - backend-net
+      - gateway-net
+      - tracing-net
+
+    # ──────────────────────────────────────────────────────
+    # DEPENDS_ON — Khởi động sau khi dependencies healthy
+    # ──────────────────────────────────────────────────────
+    # condition: service_healthy → đợi healthcheck pass, không chỉ container start
+    # Nếu thiếu: user-service start trước khi postgres ready → crash → restart loop
+    # ──────────────────────────────────────────────────────
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      otel-collector:
+        condition: service_healthy
+
+    # ──────────────────────────────────────────────────────
+    # VOLUMES — Hot reload cho local dev
+    # ──────────────────────────────────────────────────────
+    # Bind mount: map source code từ máy host vào container
+    # → Sửa file trên máy → container thấy ngay (không cần rebuild image)
+    # → Chỉ dùng cho dev, KHÔNG dùng ở production
+    # ──────────────────────────────────────────────────────
+    volumes:
+      - ./user-service:/app:cached  # :cached = macOS performance optimization
+      # Loại trừ những thứ không nên sync từ host vào container:
+      - /app/__pycache__            # Python bytecode của container, không dùng trên host
+      - /app/.venv                  # virtualenv của container
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================================================
+  # PRODUCT CATALOG SERVICE
+  # ============================================================================
+  # Python / Django REST Framework
+  # Databases: MongoDB (catalog_db), Redis (product cache), OpenSearch (search)
+  # ============================================================================
+
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    image: ecommerce/product-service:${VERSION:-latest}
+    container_name: ecommerce-product-service
+    restart: unless-stopped
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.local
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+
+      # MongoDB — product-service dùng MongoDB, không phải PostgreSQL
+      MONGODB_HOST: mongodb
+      MONGODB_PORT: 27017
+      MONGODB_USER: ${MONGO_USER}
+      MONGODB_PASSWORD: ${MONGO_PASSWORD}
+      MONGODB_DB: catalog_db
+
+      # Redis — chỉ dùng DB index 0 cho product cache
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB_CACHE: 0
+      # Cache TTL settings (seconds)
+      REDIS_PRODUCT_TTL: 300        # cache product 5 phút
+      REDIS_CATEGORY_TTL: 3600      # cache category 1 giờ (ít thay đổi hơn)
+
+      # OpenSearch — full-text search
+      OPENSEARCH_HOST: opensearch
+      OPENSEARCH_PORT: 9200
+      OPENSEARCH_INDEX_PRODUCTS: ecommerce-products
+
+      # JWT Public Key — để verify token từ user-service (KHÔNG cần private key)
+      # Product service chỉ VERIFY token, không issue token mới
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+
+      # OTel
+      OTEL_SERVICE_NAME: product-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+
+    networks:
+      - backend-net
+      - gateway-net
+      - tracing-net
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      opensearch:
+        condition: service_healthy
+    volumes:
+      - ./product-service:/app:cached
+      - /app/__pycache__
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================================================
+  # CART SERVICE
+  # ============================================================================
+  # Python / Django REST Framework
+  # Database: Redis ONLY (cart là ephemeral data, không cần PostgreSQL)
+  # Tại sao Redis là primary store cho Cart?
+  # → Cart data = temporary (user có thể abandon cart bất cứ lúc nào)
+  # → TTL native: cart tự động expire sau 7 ngày không activity
+  # → Tốc độ: add to cart phải instant, không chấp nhận DB latency
+  # ============================================================================
+
+  cart-service:
+    build:
+      context: ./cart-service
+      dockerfile: Dockerfile
+    image: ecommerce/cart-service:${VERSION:-latest}
+    container_name: ecommerce-cart-service
+    restart: unless-stopped
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.local
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+
+      # Cart service chỉ cần Redis — không có PostgreSQL
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB_CART: 3              # DB index riêng cho cart data
+
+      # TTL cho cart (seconds)
+      CART_TTL_SECONDS: 604800      # 7 ngày
+
+      # Internal service calls — cart cần verify product tồn tại
+      PRODUCT_SERVICE_URL: http://product-service:8000
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+
+      OTEL_SERVICE_NAME: cart-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+
+    networks:
+      - backend-net
+      - gateway-net
+      - tracing-net
+    depends_on:
+      redis:
+        condition: service_healthy
+      product-service:
+        condition: service_healthy
+    volumes:
+      - ./cart-service:/app:cached
+      - /app/__pycache__
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # ============================================================================
+  # ORDER SERVICE
+  # ============================================================================
+  # Python / Django REST Framework
+  # Database: PostgreSQL (orders_db)
+  # Produces: order.created (Kafka)
+  # Consumes: payment.completed, payment.failed (Kafka)
+  # ============================================================================
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    image: ecommerce/order-service:${VERSION:-latest}
+    container_name: ecommerce-order-service
+    restart: unless-stopped
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.local
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: orders_db
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      # Redis — chỉ dùng để cache order status (tránh query DB mỗi lần poll)
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB_CACHE: 0
+
+      # Kafka — order service vừa produce vừa consume
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      KAFKA_CONSUMER_GROUP: order-service-group
+      KAFKA_TOPIC_ORDER_CREATED: order.created        # produce
+      KAFKA_TOPIC_PAYMENT_COMPLETED: payment.completed # consume
+      KAFKA_TOPIC_PAYMENT_FAILED: payment.failed       # consume
+
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      OTEL_SERVICE_NAME: order-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+
+    networks:
+      - backend-net
+      - gateway-net
+      - tracing-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./order-service:/app:cached
+      - /app/__pycache__
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================================================
+  # PAYMENT SERVICE
+  # ============================================================================
+  # Python / Django REST Framework
+  # Database: PostgreSQL (payments_db)
+  # Produces: payment.completed, payment.failed (Kafka)
+  # Consumes: order.created (Kafka)
+  # External: Stripe API
+  # ============================================================================
+
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    image: ecommerce/payment-service:${VERSION:-latest}
+    container_name: ecommerce-payment-service
+    restart: unless-stopped
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.local
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
+
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: payments_db
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+
+      # Redis — idempotency keys cho Stripe (tránh charge 2 lần nếu retry)
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB_IDEMPOTENCY: 4       # DB index riêng cho idempotency keys
+      REDIS_IDEMPOTENCY_TTL: 86400  # giữ key 24h
+
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      KAFKA_CONSUMER_GROUP: payment-service-group
+      KAFKA_TOPIC_ORDER_CREATED: order.created        # consume
+      KAFKA_TOPIC_PAYMENT_COMPLETED: payment.completed # produce
+      KAFKA_TOPIC_PAYMENT_FAILED: payment.failed       # produce
+
+      # Stripe
+      STRIPE_API_KEY: ${STRIPE_API_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+
+      JWT_PUBLIC_KEY: ${JWT_PUBLIC_KEY}
+      OTEL_SERVICE_NAME: payment-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+
+    networks:
+      - backend-net
+      - gateway-net
+      - tracing-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./payment-service:/app:cached
+      - /app/__pycache__
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================================================
+  # NOTIFICATION SERVICE (Go)
+  # ============================================================================
+  # Go — pure Kafka consumer, không có HTTP server chính (chỉ health endpoint)
+  # Consumes: user.registered, order.created, payment.completed, payment.failed
+  # External: SendGrid (email), Twilio (SMS)
+  # ============================================================================
+
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    image: ecommerce/notification-service:${VERSION:-latest}
+    container_name: ecommerce-notification-service
+    restart: unless-stopped
+    environment:
+      # Kafka — chỉ consume, không produce
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      KAFKA_CONSUMER_GROUP: notification-service-group
+      KAFKA_TOPICS: user.registered,order.created,payment.completed,payment.failed
+
+      # Redis — rate limiting: tránh spam email/SMS
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB_RATE_LIMIT: 2
+      EMAIL_RATE_LIMIT_PER_HOUR: 10
+
+      # Email provider
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      SENDGRID_FROM_EMAIL: ${SENDGRID_FROM_EMAIL}
+
+      # SMS provider
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
+      TWILIO_PHONE_NUMBER: ${TWILIO_PHONE_NUMBER}
+
+      # Go-specific
+      GO_ENV: development
+      LOG_LEVEL: debug
+
+      OTEL_SERVICE_NAME: notification-service
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_SERVICE_VERSION: ${VERSION:-0.1.0}
+
+    networks:
+      - backend-net
+      - tracing-net
+      # Không join gateway-net: notification service không nhận request từ bên ngoài
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      otel-collector:
+        condition: service_healthy
+    volumes:
+      - ./notification-service:/app   # Go hot reload với air
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ============================================================================
+  # FRONTEND (React)
+  # ============================================================================
+  # Chỉ chạy trong Docker cho dev/staging — production deploy lên CDN (Vercel/S3)
+  # ============================================================================
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev    # dev Dockerfile: chạy Vite dev server
+    image: ecommerce/frontend:${VERSION:-latest}
+    container_name: ecommerce-frontend
+    restart: unless-stopped
+    environment:
+      # API Gateway URL — frontend gọi Kong, Kong route đến services
+      VITE_API_BASE_URL: http://localhost:8000/api/v1
+      VITE_APP_ENV: development
+    networks:
+      - gateway-net    # chỉ cần gateway-net: giao tiếp qua Kong
+    depends_on:
+      kong:
+        condition: service_healthy
+    volumes:
+      - ./frontend/src:/app/src:cached        # hot reload source
+      - ./frontend/public:/app/public:cached
+      - /app/node_modules                     # node_modules của container, không sync
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5173"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 30s

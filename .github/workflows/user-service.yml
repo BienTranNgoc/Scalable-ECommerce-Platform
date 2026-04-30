@@ -1,0 +1,78 @@
+name: User Service
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/user-service/**'
+      - '.github/workflows/user-service.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'user-service/**'
+
+jobs:
+  # ─── Stage 1: Test ────────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend/user-service
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements-test.txt
+
+      - name: Run unit tests (no DB required — mock-based)
+        run: |
+          pytest apps/ \
+            --cov=apps \
+            --cov-report=xml \
+            --cov-fail-under=80 \
+            -v
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: user-service/coverage.xml
+
+  # ─── Stage 2: Build & Push (chỉ khi merge vào main) ───
+  build:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    uses: BienTranNgoc/my-github-actions/.github/workflows/build-push.yml@main
+    with:
+      service_name: user-service
+      service_dir: backend/user-service
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+
+  # ─── Stage 3: Deploy Staging ───────────────────────────
+  deploy-staging:
+    needs: build
+    uses: BienTranNgoc/my-github-actions/.github/workflows/deploy-gke.yml@main
+    with:
+      service_name: user-service
+      image_tag: ${{ needs.build.outputs.image_tag }}
+      environment: staging
+    secrets:
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+
+  # ─── Stage 4: Deploy Production (manual approval) ─────
+  deploy-production:
+    needs: deploy-staging
+    uses: BienTranNgoc/my-github-actions/.github/workflows/deploy-gke.yml@main
+    with:
+      service_name: user-service
+      image_tag: ${{ needs.build.outputs.image_tag }}
+      environment: production    # Environment này cần reviewer approval trên GitHub
+    secrets:
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}

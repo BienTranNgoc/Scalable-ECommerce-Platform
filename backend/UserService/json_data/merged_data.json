@@ -1,0 +1,268 @@
+[
+    {
+        "ResourceName": "management:common",
+        "URLs": [
+            "/enterprise/user/password/validate-v2/*",
+            "/enterprise/imei/version/check/*",
+            "/user/language/update/*",
+            "/api/v1/channel/streaming-info/*",
+            "/sme/camera/setting/alert/change/*",
+            "/api/categories/flf-devices/*",
+            "/enterprise/cloud/camera/moment/list/*",
+            "/enterprise/cloud/nvr/moment/list/*",
+            "/enterprise/web/custom-view/remove-v2/*",
+            "/api/v2/enterprise/company/select/*",
+            "/device/notification/disturb/status/*",
+            "/enterprise/custom-view/create-v2/*",
+            "/enterprise/iot/license/check/*",
+            "/api/devices/*",
+            "/api/icons/{type}/*",
+            "/enterprise/nvr/streaming-info/*",
+            "/enterprise/custom-view/remove-v2/*",
+            "/enterprise/company/list-v2/*",
+            "/enterprise/custom-view/list-by-place-v2/*",
+            "/device/notification/disturb-schedule/update/*",
+            "/sme/user/profile/personal/*",
+            "/sme/inbox/letter/list/*",
+            "/enterprise/nvr/home/single/*",
+            "/api/iot-control/*",
+            "/enterprise/company/select/*",
+            "/cloud/device/list/*",
+            "/sme/support/topic/create/*",
+            "/enterprise/web/custom-view/create-v2/*",
+            "/enterprise/des/nvr/streaming-info/*",
+            "/enterprise/web/camera/list-by-place/*",
+            "/api/categories/*",
+            "/sme/support/topic/list/*",
+            "/api/devices/exists/*",
+            "/sme/support/faq/content/search/*",
+            "/api/devices/check/*",
+            "/enterprise/custom-view/update-v2/*",
+            "/enterprise/device/list/*",
+            "/enterprise/des/camera/streaming-info/*",
+            "/sme/gift-code/details-v4/*",
+            "/enterprise/web/custom-view/update-v2/*",
+            "/sme/device/list/*",
+            "/sme/support/faq/content/list/*",
+            "/enterprise/camera/streaming-info-v6/*",
+            "/enterprise/des/device/detail/*",
+            "/mngt-service/details/*",
+            "/sme/device/notification/alert/update/*",
+            "/enterprise/des/company-place/list-v3/*",
+            "/mngt-service/streaming/info/*",
+            "/enterprise/web/custom-view/list-by-place-v2/*",
+            "/enterprise/cloud/camera/playback/list/*",
+            "/enterprise/cloud/nvr/playback/list/*",
+            "/ai/device/info/list/*",
+            "/enterprise/user/password/update-v2/*",
+            "/enterprise/inbox/notification/list/*",
+            "/sme/camera/setting/alert/status/*",
+            "/device/notification/disturb/update/*",
+            "/enterprise/motion/info/*",
+            "/sme/inbox/letter/details/*",
+            "/enterprise/des/camera/list-by-place-v4/*",
+            "/cloud/playback/list/*",
+            "/cloud/moment/list/*",
+            "/sme/device/notification/alert/status/*"
+        ]
+    },
+    {
+        "ResourceName": "management:user",
+        "URLs": [
+            "/uac/group/user/update/*",
+            "/uac/group/user/detail-v2/*",
+            "/uac/group/permission/list-v2/*",
+            "/uac/group/user/detail/*",
+            "/uac/group/user/delete/*",
+            "/enterprise/uac/group/user/assign-detail/*",
+            "/enterprise/uac/group/user/update/*",
+            "/uac/group/user/list/*",
+            "/enterprise/uac/group/user/list/group-by/*",
+            "/enterprise/uac/group/user/create/*",
+            "/uac/group/user/create/*",
+            "/enterprise/uac/group/user/delete/*",
+            "/enterprise/uac/group/permission/list/group-by-v2/*",
+            "/uac/group/permission/list/*"
+        ]
+    },
+    {
+        "ResourceName": "management:place",
+        "URLs": [
+            "/sme/place/detail/*",
+            "/enterprise/place/detail/*",
+            "/uac/group/place/list/group-by/*",
+            "/enterprise/uac/place/list/*",
+            "/sme/place/update/info/*",
+            "/enterprise/des/place/detail/*",
+            "/sme/place/create/*",
+            "/enterprise/place/list-v3/*",
+            "/uac/group/place/delete/*",
+            "/enterprise/place/create/*",
+            "/enterprise/des/place/update/*",
+            "/enterprise/des/place/create/*",
+            "/uac/group/place/list/*"
+        ]
+    },
+    {
+        "ResourceName": "management:group",
+        "URLs": [
+            "/enterprise/uac/group/list-by-group/*",
+            "/uac/group/create/*",
+            "/uac/group/place/add/*",
+            "/uac/group/delete/*",
+            "/enterprise/uac/group/delete/*",
+            "/uac/group/update/*",
+            "/enterprise/uac/group/update/*",
+            "/enterprise/uac/group/place/add/*",
+            "/enterprise/uac/group/create/*",
+            "/uac/group/list/*"
+        ]
+    },
+    {
+        "ResourceName": "management:resource",
+        "URLs": [
+            "/enterprise/uac/group/permission/assign/*",
+            "/uac/group/permission/assign/*"
+        ]
+    },
+    {
+        "ResourceName": "config:add",
+        "URLs": [
+            "/enterprise/nvr/add/*",
+            "/enterprise/des/device/add/*",
+            "/sme/camera/add-v3/*"
+        ]
+    },
+    {
+        "ResourceName": "config:nvr",
+        "URLs": [
+            "/enterprise/nvr/channel/device/add-manual/*",
+            "/enterprise/nvr/channel/quick-set/setup/*",
+            "/enterprise/nvr/channel/quick-set/preview/*"
+        ]
+    },
+    {
+        "ResourceName": "config:device",
+        "URLs": [
+            "/enterprise/des/camera/setting/reboot/*",
+            "/enterprise/nvr/channel/device/details/extra/*",
+            "/enterprise/camera/setting/check-fw/*",
+            "/sme/camera/setting/alert/change/*",
+            "/enterprise/nvr/channel/device/remove/*",
+            "/sme/camera/setting/motion/zone/update/*",
+            "/sme/camera/setting/motion/zone/status/*",
+            "/enterprise/des/camera/settings/diagnose-check/*",
+            "/enterprise/nvr/channel/device/details/*",
+            "/enterprise/des/nvr/setting/check-fw/*",
+            "/sme/camera/wifi-mode/details/*",
+            "/sme/camera/setting/full-record/status/*",
+            "/enterprise/camera/setting/reboot/*",
+            "/enterprise/des/nvr/storage/info/*",
+            "/mngt-service/info/*",
+            "/nvr-mngt-service/info/*",
+            "/sme/camera/setting/auto-detect/status-v3/*",
+            "/enterprise/des/nvr/channel/device/list/*",
+            "/enterprise/nvr/channel/device/list/*",
+            "/enterprise/camera/setting/detail-group-v5/*",
+            "/sme/camera/setting/full-record/update/*",
+            "/enterprise/des/nvr/remove/*",
+            "/enterprise/des/camera/setting/check-fw/*",
+            "/enterprise/nvr/remove/*",
+            "/enterprise/nvr/storage/format/*",
+            "/enterprise/nvr/channel/title/update/*",
+            "/sme/camera/setting/rotate/status/*",
+            "/enterprise/des/camera/setting/upgrade-fw/*",
+            "/enterprise/nvr/setting-v2/*",
+            "/enterprise/des/nvr/channel/list/*",
+            "/enterprise/camera/setting/night-vision/status-v2/*",
+            "/enterprise/nvr/channel/quick-set/preview/*",
+            "/enterprise/des/nvr/setting/upgrade-fw/*",
+            "/enterprise/des/nvr/storage/format/*",
+            "/enterprise/nvr/channel/list/*",
+            "/sme/camera/info-group/*",
+            "/enterprise/nvr/channel/device/add-manual/*",
+            "/enterprise/des/camera/setting/sd-card/info/*",
+            "/sme/camera/setting/rotate/update/*",
+            "/sme/camera/setting/human-detect/change/*",
+            "/api/devices/{id}/*",
+            "/enterprise/nvr/storage/info/*",
+            "/sme/camera/setting/motion/change/*",
+            "/enterprise/camera/setting/night-vision/update-v2/*",
+            "/sme/camera/remove/*",
+            "/sme/des/camera/remove/*",
+            "/enterprise/nvr/info/*",
+            "/sme/camera/setting/watermark/status/*",
+            "/sme/camera/update/*",
+            "/sme/camera/setting/diagnostic/check/*",
+            "/enterprise/nvr/channel/quick-set/setup/*",
+            "/enterprise/nvr/update/*",
+            "/enterprise/nvr/storage/update/*",
+            "/enterprise/nvr/channel/device/update-manual/*",
+            "/enterprise/nvr/setting/check-fw/*",
+            "/sme/camera/setting/watermark/change/*",
+            "/enterprise/des/nvr/settings/diagnose-check/*",
+            "/enterprise/nvr/channel/device/add/*"
+        ]
+    },
+    {
+        "ResourceName": "monitoring:people_couting",
+        "URLs": [
+            "/api/v1/people-counting/statistic/graph/*",
+            "/api/v1/people-counting/place/list/*",
+            "/api/v1/people-counting/record/list/*",
+            "/api/v1/people-counting/des/place/list/*",
+            "/api/v1/people-counting/record/download/*",
+            "/api/v1/people-counting/record/export/*",
+            "/api/v1/people-counting/des/record/export/*"
+        ]
+    },
+    {
+        "ResourceName": "config:people_couting",
+        "URLs": [
+            "/api/v1/people-counting/account/list/*",
+            "/api/v1/people-counting/place/list/*",
+            "/api/v1/people-counting/box/get/*",
+            "/api/v1/people-counting/playback/get/*",
+            "/api/v1/people-counting/feature/set-up/*",
+            "/api/v1/people-counting/schedule/get/*"
+        ]
+    },
+    {
+        "ResourceName": "monitoring:face_recognition",
+        "URLs": [
+            "/api/v2/ai/device/info/list/*",
+            "/api/v1/face-service/service/check/*",
+            "/api/v1/face-profile-management/restful-resource/*",
+            "/mngt-service/details/*",
+            "/mngt-service/streaming/info/*"
+        ]
+    },
+    {
+        "ResourceName": "config:face_recognition",
+        "URLs": [
+            "/api/v1/face-service/config/playback/get/*",
+            "/api/v1/face-service/service/list/*",
+            "/api/v1/face-profile-management/restful-resource/*",
+            "/api/v1/face-service/service/config/*",
+            "/api/v1/face-service/config/schedule/get/*",
+            "/api/v1/face-service/config/box/get/*",
+            "/api/v1/face-service/config/face-resource/get/*",
+            "/api/v1/face-service/service/filter-list/*"
+        ]
+    },
+    {
+        "ResourceName": "management:face_recognittion",
+        "URLs": [
+            "/api/v1/face-profile-management/restful-resource/*",
+            "/api/v1/face-profile-management/restful-profile-v2/*"
+        ]
+    },
+    {
+        "ResourceName": "management:room",
+        "URLs": [
+            "/enterprise/iot/room/list/*",
+            "/enterprise/iot/room/add/*",
+            "/enterprise/iot/room/detail/*"
+        ]
+    }
+]

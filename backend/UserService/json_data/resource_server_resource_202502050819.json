@@ -1,0 +1,303 @@
+{
+"resource_server_resource": [
+	{
+		"id" : "6a37e498-83e9-4b25-a81e-ed069829d198",
+		"name" : "Default Resource",
+		"type" : "urn:resource-admin:resources:default",
+		"icon_uri" : null,
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : false,
+		"display_name" : null
+	},
+	{
+		"id" : "22d3618b-cede-4906-8957-05620f4f9079",
+		"name" : "Default Resource",
+		"type" : "urn:account-console:resources:default",
+		"icon_uri" : null,
+		"owner" : "1bc2cb3a-4266-495a-8c1f-49479b7c9a8f",
+		"resource_server_id" : "1bc2cb3a-4266-495a-8c1f-49479b7c9a8f",
+		"owner_managed_access" : false,
+		"display_name" : null
+	},
+	{
+		"id" : "e6ebef19-c86d-46ed-9d5c-34cb33e285f2",
+		"name" : "monitoring:playback",
+		"type" : "monitoring:playback",
+		"icon_uri" : "monitoring:playback:view_cloud",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "monitoring:playback"
+	},
+	{
+		"id" : "1b4b6f82-f7e7-4761-ad16-5cbb815d70f9",
+		"name" : "management:group",
+		"type" : "management:group",
+		"icon_uri" : "management:group:create",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "management:group"
+	},
+	{
+		"id" : "c8d0f883-a81f-404d-81a0-ab5171cf7e3a",
+		"name" : "management:place",
+		"type" : "management:place",
+		"icon_uri" : "management:place:create",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "management:place"
+	},
+	{
+		"id" : "8a9ba8e7-97da-4c0d-90a6-ad6f42e534bb",
+		"name" : "monitoring:scenario",
+		"type" : "monitoring:scenario",
+		"icon_uri" : "monitoring:scenario:create",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "monitoring:scenario"
+	},
+	{
+		"id" : "33dd5d7a-7f7c-4644-9de4-3a2065efc862",
+		"name" : "sysmanagement:permission",
+		"type" : "sysmanagement:permission",
+		"icon_uri" : "sysmanagement:permission:create",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "sysmanagement:permission"
+	},
+	{
+		"id" : "d89eefa8-3d0a-49cf-9244-87d67c284d08",
+		"name" : "sysmanagement:role",
+		"type" : "sysmanagement:role",
+		"icon_uri" : "sysmanagement:role:create",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "sysmanagement:role"
+	},
+	{
+		"id" : "0cd393bf-1884-4aa2-9b5d-b5f91cd57b4f",
+		"name" : "management:service",
+		"type" : "management:service",
+		"icon_uri" : "management:service:active",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "management:service"
+	},
+	{
+		"id" : "6f000842-02e7-4962-aa40-02abc2a6e13f",
+		"name" : "config:nvr",
+		"type" : "config:nvr",
+		"icon_uri" : "config:nvr:quickset",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "config:nvr"
+	},
+	{
+		"id" : "4f191f67-7bee-4733-9bb5-2fa36a400a22",
+		"name" : "Default Resource",
+		"type" : "urn:test-oidc:resources:default",
+		"icon_uri" : null,
+		"owner" : "6b317fda-cd54-4be5-bc7c-dfd1032aa0c0",
+		"resource_server_id" : "6b317fda-cd54-4be5-bc7c-dfd1032aa0c0",
+		"owner_managed_access" : false,
+		"display_name" : null
+	},
+	{
+		"id" : "73c505e3-b664-4bbc-bce3-7f6e0bd5fa5c",
+		"name" : "management:user",
+		"type" : "management:user",
+		"icon_uri" : "management:user:create",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "management:user"
+	},
+	{
+		"id" : "43b575f6-818f-4f3c-acbd-190e2bd72ceb",
+		"name" : "management:resource",
+		"type" : "management:resource",
+		"icon_uri" : "management:resource:map_user_to_resource",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "management:resource"
+	},
+	{
+		"id" : "005bd21c-5c33-40ed-8d19-eadc982adc29",
+		"name" : "sysmanagement:scope",
+		"type" : "sysmanagement:scope",
+		"icon_uri" : "sysmanagement:scope:create",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "sysmanagement:scope"
+	},
+	{
+		"id" : "3a2a79c5-f889-40fb-9079-bde4fa16bacc",
+		"name" : "management:license",
+		"type" : "management:license",
+		"icon_uri" : "management:license:view_list",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "management:license"
+	},
+	{
+		"id" : "6cae6093-963c-4afa-b67b-16527eeec6b9",
+		"name" : "management:role",
+		"type" : "management:role",
+		"icon_uri" : "management:role:create",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "management:role"
+	},
+	{
+		"id" : "17e5eb18-89bf-4733-abea-20109f765659",
+		"name" : "sysmanagement:user",
+		"type" : "sysmanagement:user",
+		"icon_uri" : "sysmanagement:user:create",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "sysmanagement:user"
+	},
+	{
+		"id" : "a9f608f7-c3a4-4136-af41-483282c1cdaa",
+		"name" : "monitoring:face_recognition",
+		"type" : "monitoring:face_recognition",
+		"icon_uri" : "monitoring:face_recognition:view_live",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "monitoring:face_recognition"
+	},
+	{
+		"id" : "5e4f1bc9-648f-49f7-90c5-fc8d7e401b08",
+		"name" : "monitoring:people_couting",
+		"type" : "monitoring:people_couting",
+		"icon_uri" : "monitoring:people_couting:add_newchart",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "monitoring:people_couting"
+	},
+	{
+		"id" : "00d897da-4dcb-4b5f-a2ea-353f47d09cd7",
+		"name" : "device:remove",
+		"type" : "device:remove",
+		"icon_uri" : "",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : false,
+		"display_name" : "device:remove"
+	},
+	{
+		"id" : "b3c0917e-0eaa-4b6c-a07a-479e6ec67322",
+		"name" : "Default Resource",
+		"type" : "urn:test-connect-idp:resources:default",
+		"icon_uri" : null,
+		"owner" : "9b57458f-cb8e-44a4-9a28-77479026049d",
+		"resource_server_id" : "9b57458f-cb8e-44a4-9a28-77479026049d",
+		"owner_managed_access" : false,
+		"display_name" : null
+	},
+	{
+		"id" : "87cded06-ac6e-4714-b597-f0a7a888c7cf",
+		"name" : "management:room",
+		"type" : "management:room",
+		"icon_uri" : "management:room:create",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "management:room"
+	},
+	{
+		"id" : "e45a22a0-e672-4eed-985f-dcca78648e7d",
+		"name" : "config:people_couting",
+		"type" : "config:people_couting",
+		"icon_uri" : "config:people_couting:view_list_setting",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "config:people_couting"
+	},
+	{
+		"id" : "d27ffc80-01dd-40b9-8fc1-60de775e8bc2",
+		"name" : "management:permission",
+		"type" : "management:permission",
+		"icon_uri" : "management:permission:create",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "management:permission"
+	},
+	{
+		"id" : "052310b9-4f80-4a79-8c20-93f3f7a3f0eb",
+		"name" : "management:common",
+		"type" : "management:common",
+		"icon_uri" : "",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "management:common"
+	},
+	{
+		"id" : "d0ab4342-ff30-447d-8dac-f40787ba4abe",
+		"name" : "Test",
+		"type" : null,
+		"icon_uri" : "",
+		"owner" : "3d73afd7-3bbd-4484-8835-0ab070f8c682",
+		"resource_server_id" : "a9e73e83-7473-4299-8190-f331293acad4",
+		"owner_managed_access" : false,
+		"display_name" : "Test"
+	},
+	{
+		"id" : "d4bcafd0-3000-415e-b29c-4feedc108fc3",
+		"name" : "management:face_recognittion",
+		"type" : "management:face_recognittion",
+		"icon_uri" : "management:face_recognittion:view_list",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "management:face_recognittion"
+	},
+	{
+		"id" : "d743c27d-afb6-4d16-ada6-5809aec3a68d",
+		"name" : "config:add",
+		"type" : "config:add",
+		"icon_uri" : "config:add:camera",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "config:add"
+	},
+	{
+		"id" : "76a42a78-e80d-4e98-b031-aafb6496b0aa",
+		"name" : "config:device",
+		"type" : "config:device",
+		"icon_uri" : "config:device:remove",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "config:device"
+	},
+	{
+		"id" : "806fec5b-9071-4a7e-ba0b-82263123b7f6",
+		"name" : "config:face_recognition",
+		"type" : "config:face_recognition",
+		"icon_uri" : "config:face_recognition:view_list_setting",
+		"owner" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"resource_server_id" : "46d397b4-c297-410b-bfff-a6a12d5c70a0",
+		"owner_managed_access" : true,
+		"display_name" : "config:face_recognition"
+	}
+]}

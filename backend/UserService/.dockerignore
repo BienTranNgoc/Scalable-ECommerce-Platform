@@ -1,0 +1,54 @@
+/.idea
+*.pyc
+
+# Translations
+*.pot
+
+/static
+/media
+fptcamera/local_settings.py
+apps/_apis
+apps/_apis2
+apps/_cameras
+apps/apis/tests/*
+/ipcamera_api.sqlite3
+/db.sqlite3
+/running
+/deploy.sh
+/gunicorn.pid
+*.sqlite3
+
+.vscode
+
+env
+.env*
+!.env.test
+.envs/*
+
+#**/*migrations*
+/script.py
+#**/**/*migrations*
+*/*/migrations/*
+!*/*/migrations/__init__.py
+/zimage-test/
+/sdockerDB/
+/script_server.py
+/logs/
+
+# celerybeat
+*.bak
+*.dat
+*.dir
+
+# resources
+#/resources
+
+/venv2/
+/venv/
+/local
+local_requirements.txt
+.coverage
+
+# Logs
+logs/
+*.log

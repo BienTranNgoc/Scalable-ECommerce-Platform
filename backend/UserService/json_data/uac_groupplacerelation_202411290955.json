@@ -1,0 +1,80 @@
+{
+"uac_groupplacerelation": [
+	{
+		"id" : "000c7072b7ac4e13be8b1cbf82ea7825",
+		"created_at" : "2024-04-15 10:56:51.867019",
+		"modified_at" : "2024-04-15 10:56:51.867058",
+		"group_id" : "a7d6872f6a6b4caba906502c9d4725a9",
+		"place_id" : "353dbd2f141e4a878fcbe04b2bb9e35f"
+	},
+	{
+		"id" : "161766c5d24e43cd867c5144e4eba114",
+		"created_at" : "2024-04-15 09:09:48.761178",
+		"modified_at" : "2024-04-15 09:09:48.761218",
+		"group_id" : "81c28a1c66724164b388c697619744f1",
+		"place_id" : "3ff13f70088a4c7b9e2a145b0c3f59e1"
+	},
+	{
+		"id" : "25e53c4e97e240848d7d2604824099e2",
+		"created_at" : "2024-04-15 10:25:50.095023",
+		"modified_at" : "2024-04-15 10:25:50.095059",
+		"group_id" : "cc7ca6408e4a40c2a6e8c78028526686",
+		"place_id" : "b3be61d5b647453aa30ebad48c5bc8e0"
+	},
+	{
+		"id" : "4e1e305a4f0b4320997f38096d64f440",
+		"created_at" : "2024-04-20 16:48:56.109453",
+		"modified_at" : "2024-04-20 16:48:56.109453",
+		"group_id" : "19be79129c73475ca8b56dab2f98b94f",
+		"place_id" : "fbfbdfcb1101458ba2f9fe11570425af"
+	},
+	{
+		"id" : "725b26483f144ced8b9d268f257f8977",
+		"created_at" : "2024-04-15 09:09:48.762414",
+		"modified_at" : "2024-04-15 09:09:48.762444",
+		"group_id" : "81c28a1c66724164b388c697619744f1",
+		"place_id" : "a920576c1f9111edab7a0242ac110003"
+	},
+	{
+		"id" : "8be2f4629bd348f680f5b60f2d29c2d3",
+		"created_at" : "2024-07-02 10:25:30.752597",
+		"modified_at" : "2024-07-02 10:25:30.752618",
+		"group_id" : "4b6b26ed32ca4540b68ab8f6435dfcfc",
+		"place_id" : "731c91f68b4143aeb5ca5b858c0c4227"
+	},
+	{
+		"id" : "9c82a60372134cb691f5e1fcbeab8e00",
+		"created_at" : "2024-11-05 10:57:22.437331",
+		"modified_at" : "2024-11-05 10:57:22.437359",
+		"group_id" : "cce9ebf1b0724b8289657144fd65c30b",
+		"place_id" : "61439f1c541f49738c375dfc53fd6409"
+	},
+	{
+		"id" : "c49157787845483bb683ae9971da25d9",
+		"created_at" : "2024-04-15 10:56:49.009587",
+		"modified_at" : "2024-04-15 10:56:49.009625",
+		"group_id" : "a7d6872f6a6b4caba906502c9d4725a9",
+		"place_id" : "eca07718284411edb1600242ac110003"
+	},
+	{
+		"id" : "c80b12723620450191e078874a883280",
+		"created_at" : "2024-04-15 10:52:38.046002",
+		"modified_at" : "2024-04-15 10:52:38.046040",
+		"group_id" : "f2dac2e87d984fca9d970d585def22b2",
+		"place_id" : "ac605ed648f5480caa38119ee2d3c761"
+	},
+	{
+		"id" : "cd288148d87443848ada5c1b872843f0",
+		"created_at" : "2024-01-31 08:24:45.732267",
+		"modified_at" : "2024-01-31 08:24:45.732390",
+		"group_id" : "432f7130614a419eb9350b7f9be313cd",
+		"place_id" : "3ce64f8b3f2a45369df360605d786d5e"
+	},
+	{
+		"id" : "f7da072292cd42649c2bca2b2537d65a",
+		"created_at" : "2024-08-09 16:24:04.395435",
+		"modified_at" : "2024-08-09 16:24:04.395448",
+		"group_id" : "69181263838f4e6b9a7325cdd2d93901",
+		"place_id" : "194cc43876dd4545906fffd6594dc1b7"
+	}
+]}
