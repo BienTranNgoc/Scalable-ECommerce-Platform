@@ -28,18 +28,18 @@ RUN chmod 777 -R logs/
 COPY . .
 # --- DEPLOY STAGE ---
 FROM base AS consumer
-COPY ./docker-entrypoints/docker-entrypoint-consumer.sh /docker-entrypoint.sh
+COPY ./docker/docker-entrypoints/docker-entrypoint-consumer.sh /docker-entrypoint.sh
 RUN chmod a+x /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
 # --- DEPLOY USER LOG STAGE ---
 FROM base AS userlog
-COPY ./docker-entrypoints/docker-entrypoint-userlog.sh /docker-entrypoint.sh
+COPY ./docker/docker-entrypoints/docker-entrypoint-userlog.sh /docker-entrypoint.sh
 RUN chmod a+x /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
 FROM base AS deploy
-COPY ./docker-entrypoints/docker-entrypoint-deploy.sh /docker-entrypoint.sh
+COPY ./docker/docker-entrypoints/docker-entrypoint-deploy.sh /docker-entrypoint.sh
 RUN pip install uwsgi
 EXPOSE 9000
 
