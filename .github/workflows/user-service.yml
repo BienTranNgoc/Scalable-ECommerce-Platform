@@ -2,14 +2,14 @@ name: User Service
 
 on:
   push:
-    branches: [main]
+    branches: [main, development]
     paths:
       - 'backend/user-service/**'
       - '.github/workflows/user-service.yml'
   pull_request:
-    branches: [main]
+    branches: [main, development]
     paths:
-      - 'user-service/**'
+      - 'backend/user-service/**'
 
 jobs:
   # ─── Stage 1: Test ────────────────────────────────────
@@ -43,10 +43,10 @@ jobs:
         with:
           files: user-service/coverage.xml
 
-  # ─── Stage 2: Build & Push (chỉ khi merge vào main) ───
+  # ─── Stage 2: Build & Push ───
   build:
     needs: test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development') && github.event_name == 'push'
     uses: BienTranNgoc/my-github-actions/.github/workflows/build-push.yml@main
     with:
       service_name: user-service
@@ -58,6 +58,7 @@ jobs:
   # ─── Stage 3: Deploy Staging ───────────────────────────
   deploy-staging:
     needs: build
+    if: github.ref == 'refs/heads/development'
     uses: BienTranNgoc/my-github-actions/.github/workflows/deploy-gke.yml@main
     with:
       service_name: user-service
@@ -68,7 +69,8 @@ jobs:
 
   # ─── Stage 4: Deploy Production (manual approval) ─────
   deploy-production:
-    needs: deploy-staging
+    needs: build
+    if: github.ref == 'refs/heads/main'
     uses: BienTranNgoc/my-github-actions/.github/workflows/deploy-gke.yml@main
     with:
       service_name: user-service
