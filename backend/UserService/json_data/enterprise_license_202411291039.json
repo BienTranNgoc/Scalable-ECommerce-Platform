@@ -1,0 +1,91 @@
+{
+"enterprise_license": [
+	{
+		"id" : "0c6d82ffad4a4d1ea9383e91d7871400",
+		"type" : 2,
+		"name" : "VMS Standard - Max 500",
+		"create_at" : "2024-08-22 08:09:00.945400",
+		"attributes" : "{\"content\": {\"image\": \"0-02a0aa\", \"name_en\": \"ENT package\", \"name_vi\": \"Gói quản trị\", \"breif_en\": \"Manage user access\\nCreate unlimited new localtion\\nEnhance the efficiency of enterprise managemment\", \"breif_vi\": \"Quản lý quyền truy cập của người dùng\\nTạo địa điểm mới không giới hạn\\nNâng cao hiệu quả trong việc quản lý doanh nghiệp\"}, \"limit_ccu\": 10, \"limit_share\": 15, \"limit_device\": 500, \"limit_iot_device\": 500}",
+		"cid" : 1205
+	},
+	{
+		"id" : "2564f1f07faf46dd8e1285ef1332be8b",
+		"type" : 2,
+		"name" : "VMS Standard - Max 50",
+		"create_at" : "2024-08-22 08:09:00.938937",
+		"attributes" : "{\"content\": {\"image\": \"0-02a0aa\", \"name_en\": \"ENT package\", \"name_vi\": \"Gói quản trị\", \"breif_en\": \"Manage user access\\nCreate unlimited new localtion\\nEnhance the efficiency of enterprise managemment\", \"breif_vi\": \"Quản lý quyền truy cập của người dùng\\nTạo địa điểm mới không giới hạn\\nNâng cao hiệu quả trong việc quản lý doanh nghiệp\"}, \"limit_ccu\": 10, \"limit_share\": 15, \"limit_device\": 50, \"limit_iot_device\": 50}",
+		"cid" : 1202
+	},
+	{
+		"id" : "3e27db1eb4fa4315b1a79fd844a0559e",
+		"type" : 2,
+		"name" : "VMS Standard - Max 100",
+		"create_at" : "2024-08-22 08:09:00.941263",
+		"attributes" : "{\"content\": {\"image\": \"0-02a0aa\", \"name_en\": \"ENT package\", \"name_vi\": \"Gói quản trị\", \"breif_en\": \"Manage user access\\nCreate unlimited new localtion\\nEnhance the efficiency of enterprise managemment\", \"breif_vi\": \"Quản lý quyền truy cập của người dùng\\nTạo địa điểm mới không giới hạn\\nNâng cao hiệu quả trong việc quản lý doanh nghiệp\"}, \"limit_ccu\": 10, \"limit_share\": 15, \"limit_device\": 100, \"limit_iot_device\": 100}",
+		"cid" : 1203
+	},
+	{
+		"id" : "43075a6ce4a541a2a3441f38b3fc562d",
+		"type" : 2,
+		"name" : "VMS Standard - Max 1000",
+		"create_at" : "2024-08-22 08:09:00.947371",
+		"attributes" : "{\"content\": {\"image\": \"0-02a0aa\", \"name_en\": \"ENT package\", \"name_vi\": \"Gói quản trị\", \"breif_en\": \"Manage user access\\nCreate unlimited new localtion\\nEnhance the efficiency of enterprise managemment\", \"breif_vi\": \"Quản lý quyền truy cập của người dùng\\nTạo địa điểm mới không giới hạn\\nNâng cao hiệu quả trong việc quản lý doanh nghiệp\"}, \"limit_ccu\": 10, \"limit_share\": 15, \"limit_device\": 1000, \"limit_iot_device\": 1000}",
+		"cid" : 1206
+	},
+	{
+		"id" : "45bb08f8b6af11ebb3570242ac110003",
+		"type" : 2,
+		"name" : "License S1",
+		"create_at" : "2021-05-17 08:29:07.035605",
+		"attributes" : "{\"content\": {\"image\": \"0-02a0aa\", \"name_en\": \"ENT pack\", \"name_vi\": \"Gói quản trị\", \"brief_en\": \"Manage user access\\r\\nCreate unlimited new localtion\\r\\nEnhance the efficiency of enterprise management\", \"brief_vi\": \"Quản lý quyền truy cập\\r\\nTạo địa điểm mới không giới hạn\\r\\nNâng cao hiệu quả trong việc quản lý doanh nghiệp\"}, \"limit_ccu\": 10, \"limit_share\": 15}",
+		"cid" : 10
+	},
+	{
+		"id" : "52df55869dbe434fbc243a355106687f",
+		"type" : 2,
+		"name" : "VMS Standard - Max 300",
+		"create_at" : "2024-08-22 08:09:00.943439",
+		"attributes" : "{\"content\": {\"image\": \"0-02a0aa\", \"name_en\": \"ENT package\", \"name_vi\": \"Gói quản trị\", \"breif_en\": \"Manage user access\\nCreate unlimited new localtion\\nEnhance the efficiency of enterprise managemment\", \"breif_vi\": \"Quản lý quyền truy cập của người dùng\\nTạo địa điểm mới không giới hạn\\nNâng cao hiệu quả trong việc quản lý doanh nghiệp\"}, \"limit_ccu\": 10, \"limit_share\": 15, \"limit_device\": 300, \"limit_iot_device\": 300}",
+		"cid" : 1204
+	},
+	{
+		"id" : "617894fc4e9911ec97260242ac110003",
+		"type" : 3,
+		"name" : "License Special",
+		"create_at" : "2021-11-26 16:15:21.392784",
+		"attributes" : "{\"content\": {\"image\": \"0-02a0aa\", \"name_en\": \"ENT\\npack\", \"name_vi\": \"Gói\\nquản trị\", \"brief_en\": \"Manage user access\\r\\nCreate unlimited new localtion\\r\\nEnhance the efficiency of enterprise management\", \"brief_vi\": \"Quản lý quyền truy cập\\r\\nTạo địa điểm mới không giới hạn\\r\\nNâng cao hiệu quả trong việc quản lý doanh nghiệp\"}, \"limit_ccu\": 10, \"limit_share\": 15}",
+		"cid" : 99999
+	},
+	{
+		"id" : "79395631469f45eea92e1e9bb84ecbea",
+		"type" : 2,
+		"name" : "VMS Standard - Max 50",
+		"create_at" : "2024-07-18 09:53:44.987121",
+		"attributes" : "{\"content\": {\"image\": \"0-02a0aa\", \"name_en\": \"ENT package\", \"name_vi\": \"Gói quản trị\", \"breif_en\": \"Manage user access\\nCreate unlimited new localtion\\nEnhance the efficiency of enterprise managemment\", \"breif_vi\": \"Quản lý quyền truy cập của người dùng\\nTạo địa điểm mới không giới hạn\\nNâng cao hiệu quả trong việc quản lý doanh nghiệp\"}, \"limit_ccu\": 10, \"limit_share\": 15, \"limit_device\": 50, \"limit_iot_device\": 1}",
+		"cid" : 2
+	},
+	{
+		"id" : "a3e19c2a26874cdc94bc0e5ab3683767",
+		"type" : 2,
+		"name" : "VMS Standard - Max 30",
+		"create_at" : "2024-08-22 08:09:00.936307",
+		"attributes" : "{\"content\": {\"image\": \"0-02a0aa\", \"name_en\": \"ENT package\", \"name_vi\": \"Gói quản trị\", \"breif_en\": \"Manage user access\\nCreate unlimited new localtion\\nEnhance the efficiency of enterprise managemment\", \"breif_vi\": \"Quản lý quyền truy cập của người dùng\\nTạo địa điểm mới không giới hạn\\nNâng cao hiệu quả trong việc quản lý doanh nghiệp\"}, \"limit_ccu\": 10, \"limit_share\": 15, \"limit_device\": 30, \"limit_iot_device\": 30}",
+		"cid" : 1201
+	},
+	{
+		"id" : "cfdcb3da655711edaab00242ac110003",
+		"type" : 2,
+		"name" : "VMS Standard - Max 30",
+		"create_at" : "2022-11-16 09:38:54.226578",
+		"attributes" : "{\"content\": {\"image\": \"0-02a0aa\", \"name_en\": \"ENT package\", \"name_vi\": \"Gói quản trị\", \"breif_en\": \"Manage user access\\nCreate unlimited new localtion\\nEnhance the efficiency of enterprise managemment\", \"breif_vi\": \"Quản lý quyền truy cập của người dùng\\nTạo địa điểm mới không giới hạn\\nNâng cao hiệu quả trong việc quản lý doanh nghiệp\"}, \"limit_ccu\": 10, \"limit_share\": 15, \"limit_device\": 100, \"limit_iot_device\": 10}",
+		"cid" : 1
+	},
+	{
+		"id" : "e6a7fb0a9f3e11ebbbfa0242ac110003",
+		"type" : 1,
+		"name" : "License Default",
+		"create_at" : "2021-04-17 12:36:47.150072",
+		"attributes" : "{\"content\": {\"image\": \"0-02a0aa\", \"name_en\": \"ENT\\npack\", \"name_vi\": \"Gói\\nquản trị\", \"brief_en\": \"Manage user access\\r\\nCreate unlimited new localtion\\r\\nEnhance the efficiency of enterprise management\", \"brief_vi\": \"Quản lý quyền truy cập\\r\\nTạo địa điểm mới không giới hạn\\r\\nNâng cao hiệu quả trong việc quản lý doanh nghiệp\"}, \"limit_ccu\": 3, \"limit_share\": 15}",
+		"cid" : 0
+	}
+]}

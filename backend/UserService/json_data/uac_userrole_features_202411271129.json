@@ -1,0 +1,409 @@
+{
+	"uac_userrole_features": [
+		{
+			"id": 220,
+			"userrole_id": "6aa2410483514863aed6ab13e7bddca1",
+			"feature_id": "716a17b22f7442b397eb429447418322"
+		},
+		{
+			"id": 18,
+			"userrole_id": "6aa2410483514863aed6ab13e7bddca1",
+			"feature_id": "869eddc382ad4e14a8ff15f9676eda60"
+		},
+		{
+			"id": 122,
+			"userrole_id": "6aa2410483514863aed6ab13e7bddca1",
+			"feature_id": "88be2605d26a4b178c3fa9d3444eb3be"
+		},
+		{
+			"id": 46,
+			"userrole_id": "6aa2410483514863aed6ab13e7bddca1",
+			"feature_id": "8ee4bb08e98c4f52863064b7ae5d9538"
+		},
+		{
+			"id": 8,
+			"userrole_id": "6aa2410483514863aed6ab13e7bddca1",
+			"feature_id": "ab975d7d048043f2940859bd1eb4e112"
+		},
+		{
+			"id": 226,
+			"userrole_id": "6aa2410483514863aed6ab13e7bddca1",
+			"feature_id": "af175dffea9e4595a028260d682492ec"
+		},
+		{
+			"id": 243,
+			"userrole_id": "6aa2410483514863aed6ab13e7bddca1",
+			"feature_id": "c9d633001556471dad00e86185d29c3e"
+		},
+		{
+			"id": 24,
+			"userrole_id": "6aa2410483514863aed6ab13e7bddca1",
+			"feature_id": "ca715a2ba7894560bcf01f4fd609093f"
+		},
+		{
+			"id": 206,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "00cc0ce22d2b41cbb2f25b3218444285"
+		},
+		{
+			"id": 238,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "049b06b654d24ebbacb4f149c7ef3cc4"
+		},
+		{
+			"id": 248,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "05874bba46244e289f10578a2b499327"
+		},
+		{
+			"id": 123,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "1bb430f08f534a3b9a02c6f1024d3d7e"
+		},
+		{
+			"id": 240,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "1d5031a6966f4631afdc5f8ba8bf4bae"
+		},
+		{
+			"id": 187,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "27b2a3d1848b4527ac805c31f1b34b19"
+		},
+		{
+			"id": 217,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "29bda19d282f4a92aedb630e0e04f4f2"
+		},
+		{
+			"id": 201,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "2f517c37149d428d9487a40ad9351347"
+		},
+		{
+			"id": 210,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "3ade5758222d487c83d61cf9afa6d281"
+		},
+		{
+			"id": 204,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "4cdef94740b446aa85070a6edeaa087d"
+		},
+		{
+			"id": 247,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "5108600ec2e04bdaabb534d930aaa712"
+		},
+		{
+			"id": 237,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "5b3ab565331245b990236d1d44140d77"
+		},
+		{
+			"id": 200,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "5f6a1c5c284541018101cab99464feaa"
+		},
+		{
+			"id": 211,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "697ffe1326c54dd5a1052502b7682011"
+		},
+		{
+			"id": 214,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "6c5ebf325348497aa81dcf1d3c7c9d1e"
+		},
+		{
+			"id": 236,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "6d79409e7a4544d791f571a2a3932cc1"
+		},
+		{
+			"id": 219,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "716a17b22f7442b397eb429447418322"
+		},
+		{
+			"id": 15,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "814521e550d7494ba8380d4cbeb45349"
+		},
+		{
+			"id": 249,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "821c7f058b7747d58e6be76bf0c1bceb"
+		},
+		{
+			"id": 207,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "8601665cd78f4571a3c11f4672e32b37"
+		},
+		{
+			"id": 17,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "869eddc382ad4e14a8ff15f9676eda60"
+		},
+		{
+			"id": 121,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "88be2605d26a4b178c3fa9d3444eb3be"
+		},
+		{
+			"id": 27,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "8c9d267c794c4b11b32b7cfb95c68b2d"
+		},
+		{
+			"id": 28,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "8ee4bb08e98c4f52863064b7ae5d9538"
+		},
+		{
+			"id": 19,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "8f4a6050640c4aafacd15cd045876995"
+		},
+		{
+			"id": 232,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "9bea1fe2423142c189596835ef6c7954"
+		},
+		{
+			"id": 11,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "ab975d7d048043f2940859bd1eb4e112"
+		},
+		{
+			"id": 29,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "ae27c110dc224eeaa8903be027b096d0"
+		},
+		{
+			"id": 225,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "af175dffea9e4595a028260d682492ec"
+		},
+		{
+			"id": 209,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "b39edca6f4714a0c8cbebf7cf5396f80"
+		},
+		{
+			"id": 233,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "c496bbd6b9dd4361a62949662c461fb8"
+		},
+		{
+			"id": 239,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "c9d633001556471dad00e86185d29c3e"
+		},
+		{
+			"id": 23,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "ca715a2ba7894560bcf01f4fd609093f"
+		},
+		{
+			"id": 197,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "cab17d9ef56c4f79a74208933f99a88e"
+		},
+		{
+			"id": 208,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "d7aede8bfcd94ea7b41e1da8a47ab594"
+		},
+		{
+			"id": 22,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "d972b6e8a30a4d87bf7df9dc51e623d3"
+		},
+		{
+			"id": 199,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "dd5b107bb506486bbae80812543a9a3a"
+		},
+		{
+			"id": 222,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "e30d4ce234aa486a9f44dc2ccb0673ff"
+		},
+		{
+			"id": 125,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "e60a7454b0b14f94820d807bcbd0b89a"
+		},
+		{
+			"id": 230,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "f76c7e7db43f4683aa2ace39bb3f1b6a"
+		},
+		{
+			"id": 251,
+			"userrole_id": "cba3c01bf741484fa8c5f4a219f54e27",
+			"feature_id": "fdb061b37df14675a7cfcc266c0a2fe5"
+		},
+		{
+			"id": 241,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "049b06b654d24ebbacb4f149c7ef3cc4"
+		},
+		{
+			"id": 245,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "05874bba46244e289f10578a2b499327"
+		},
+		{
+			"id": 188,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "27b2a3d1848b4527ac805c31f1b34b19"
+		},
+		{
+			"id": 216,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "29bda19d282f4a92aedb630e0e04f4f2"
+		},
+		{
+			"id": 203,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "2f517c37149d428d9487a40ad9351347"
+		},
+		{
+			"id": 244,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "5108600ec2e04bdaabb534d930aaa712"
+		},
+		{
+			"id": 202,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "5f6a1c5c284541018101cab99464feaa"
+		},
+		{
+			"id": 212,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "697ffe1326c54dd5a1052502b7682011"
+		},
+		{
+			"id": 227,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "6c5ebf325348497aa81dcf1d3c7c9d1e"
+		},
+		{
+			"id": 235,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "6d79409e7a4544d791f571a2a3932cc1"
+		},
+		{
+			"id": 218,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "716a17b22f7442b397eb429447418322"
+		},
+		{
+			"id": 14,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "814521e550d7494ba8380d4cbeb45349"
+		},
+		{
+			"id": 246,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "821c7f058b7747d58e6be76bf0c1bceb"
+		},
+		{
+			"id": 213,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "8601665cd78f4571a3c11f4672e32b37"
+		},
+		{
+			"id": 16,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "869eddc382ad4e14a8ff15f9676eda60"
+		},
+		{
+			"id": 120,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "88be2605d26a4b178c3fa9d3444eb3be"
+		},
+		{
+			"id": 26,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "8c9d267c794c4b11b32b7cfb95c68b2d"
+		},
+		{
+			"id": 47,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "8ee4bb08e98c4f52863064b7ae5d9538"
+		},
+		{
+			"id": 20,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "8f4a6050640c4aafacd15cd045876995"
+		},
+		{
+			"id": 229,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "9bea1fe2423142c189596835ef6c7954"
+		},
+		{
+			"id": 12,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "ab975d7d048043f2940859bd1eb4e112"
+		},
+		{
+			"id": 224,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "af175dffea9e4595a028260d682492ec"
+		},
+		{
+			"id": 234,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "c496bbd6b9dd4361a62949662c461fb8"
+		},
+		{
+			"id": 242,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "c9d633001556471dad00e86185d29c3e"
+		},
+		{
+			"id": 25,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "ca715a2ba7894560bcf01f4fd609093f"
+		},
+		{
+			"id": 215,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "cab17d9ef56c4f79a74208933f99a88e"
+		},
+		{
+			"id": 21,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "d972b6e8a30a4d87bf7df9dc51e623d3"
+		},
+		{
+			"id": 198,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "dd5b107bb506486bbae80812543a9a3a"
+		},
+		{
+			"id": 221,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "e30d4ce234aa486a9f44dc2ccb0673ff"
+		},
+		{
+			"id": 124,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "e60a7454b0b14f94820d807bcbd0b89a"
+		},
+		{
+			"id": 228,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "f76c7e7db43f4683aa2ace39bb3f1b6a"
+		},
+		{
+			"id": 250,
+			"userrole_id": "e6bc1fc2bd0a4b268bcd6c54246a85eb",
+			"feature_id": "fdb061b37df14675a7cfcc266c0a2fe5"
+		}
+	]
+}
